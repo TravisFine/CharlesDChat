@@ -252,7 +252,7 @@
     .vn-dialogue {
       position: absolute;
       bottom: 0; left: 0; right: 0;
-      height: 210px;
+      height: 230px;
       background:
         linear-gradient(180deg, rgba(255,245,251,0.97) 0%, rgba(255,238,248,0.98) 100%);
       border-top: 3px solid var(--pink-border);
@@ -308,7 +308,7 @@
     /* Text scroll area */
     .vn-text-scroll {
       padding-top: 1rem;
-      height: 148px;
+      height: 110px;
       overflow-y: auto;
       scrollbar-width: none;
     }
@@ -365,41 +365,15 @@
       50%      { transform: translateY(-4px); }
     }
 
-    /* ─── PLAYER INPUT BOX ────────────────────────────── */
-    .vn-input-wrap {
-      position: absolute;
-      bottom: 0; left: 0; right: 0;
-      height: 210px;
-      background: rgba(255,245,251,0.97);
-      border-top: 3px solid var(--lav-border);
-      z-index: 16;
-      display: none;
-      flex-direction: column;
-      justify-content: center;
-      padding: 1rem 1.5rem;
+    /* ─── PLAYER INPUT ROW (inside dialogue box) ─────── */
+    .vn-input-row {
+      display: flex;
+      gap: 0.6rem;
+      align-items: flex-end;
+      margin-top: 0.5rem;
+      padding-top: 0.5rem;
+      border-top: 1px dashed rgba(200,150,200,0.3);
     }
-
-    .vn-input-wrap::before {
-      content: '';
-      position: absolute; top: -8px; left: 20px; right: 20px; height: 5px;
-      background: repeating-linear-gradient(
-        90deg,
-        var(--lav-border) 0px, var(--lav-border) 8px,
-        transparent 8px, transparent 14px
-      );
-      border-radius: 2px;
-    }
-
-    .vn-input-label {
-      font-family: 'DotGothic16', monospace;
-      font-size: 0.65rem;
-      color: var(--text-light);
-      letter-spacing: 0.14em;
-      text-transform: uppercase;
-      margin-bottom: 0.5rem;
-    }
-
-    .vn-input-row { display: flex; gap: 0.6rem; align-items: flex-end; }
 
     .vn-input {
       flex: 1;
@@ -472,7 +446,19 @@
     <h1 class="splash-title">Dialogue with Darwin</h1>
     <p class="splash-sub">On the Origin of Species &amp; Other Works</p>
     <hr class="splash-divider">
-    <p id="load-status">Loading…</p>
+    <div style="margin-bottom:1rem;">
+      <label style="display:block;font-size:0.7rem;letter-spacing:0.15em;text-transform:uppercase;color:#c080a0;margin-bottom:0.4rem;">OpenAI API Key</label>
+      <p style="font-size:0.82rem;font-style:italic;color:#b090a0;margin-bottom:0.5rem;">Paste your key, or leave blank to load from <code>config.env</code>.</p>
+      <div style="position:relative;">
+        <input type="password" id="api-key-input"
+          placeholder="sk-proj-…"
+          autocomplete="off"
+          style="width:100%;padding:0.6rem 3rem 0.6rem 0.9rem;background:rgba(255,255,255,0.7);border:2px solid #e8b0d0;font-family:inherit;font-size:0.95rem;color:#3a1030;outline:none;" />
+        <button onclick="toggleKeyVis()" id="kv-btn"
+          style="position:absolute;right:0.75rem;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:0.72rem;color:#c080a0;letter-spacing:0.08em;">show</button>
+      </div>
+    </div>
+    <p id="load-status" style="font-size:0.85rem;font-style:italic;color:#a06080;text-align:center;min-height:1.2em;margin-bottom:0.5rem;"></p>
     <button id="begin-btn" onclick="beginSession()">❀ Begin ❀</button>
   </div>
 </div>
@@ -503,34 +489,30 @@
     <img id="portrait-b" class="portrait-img fade-out" src="" alt="Darwin" />
   </div>
 
-  <!-- Darwin dialogue box -->
+  <!-- Unified dialogue + input panel -->
   <div class="vn-dialogue" id="darwin-box">
     <span class="dial-corner tl">✿</span>
     <span class="dial-corner tr">✿</span>
     <div class="vn-nameplate" id="nameplate">Charles Darwin</div>
-    <div class="vn-text-scroll">
+    <div class="vn-text-scroll" id="vn-text-scroll">
       <div id="vn-dialogue-text" class="vn-dialogue-text"></div>
       <div id="thinking-box" class="vn-thinking">
         Contemplating<span class="dots"></span>
       </div>
     </div>
-    <div class="vn-continue" id="vn-continue">▼ continue</div>
-  </div>
-
-  <!-- Player input -->
-  <div class="vn-input-wrap" id="player-input-wrap">
-    <div class="vn-input-label">✦ Your Response ✦</div>
-    <div class="vn-input-row">
+    <!-- Input row lives INSIDE the dialogue box, shown on player turn -->
+    <div class="vn-input-row" id="player-input-wrap" style="display:none;">
       <textarea
         class="vn-input"
         id="chat-input"
         placeholder="Speak your mind…"
-        rows="2"
+        rows="1"
         onkeydown="handleKey(event)"
         oninput="autoResize(this)"
       ></textarea>
       <button class="vn-send-btn" id="send-btn" onclick="handleSend()">Send ❀</button>
     </div>
+    <div class="vn-continue" id="vn-continue">▼ continue</div>
   </div>
 </div>
 
@@ -591,48 +573,62 @@ IMPORTANT: Keep each response to 3–5 sentences. Speak always in first person a
 // ═══════════════════════════════════════════════════════════════
 // CONFIGURATION MANAGEMENT
 // ═══════════════════════════════════════════════════════════════
-// API key loaded from key.env; character doc is hardcoded
 let API_KEY = '';
 const CHAR_DOC = DEFAULT_CHAR_DOC;
 
-async function loadKeyFromEnv() {
-  const status = document.getElementById('load-status');
-  const btn    = document.getElementById('begin-btn');
-  try {
-    status.textContent = 'Loading…';
-    const res = await fetch('config.env');
-    if (!res.ok) throw new Error('config.env not found — make sure it is in the same folder as the HTML file');
-    const text = await res.text();
-    // Normalize line endings (handles Windows \r\n and Mac \r)
-    const lines = text.replace(/\r/g, '\n').split('\n').map(l => l.trim()).filter(Boolean);
-    // Accept either  OPENAI_API_KEY=sk-...  or  just  sk-...  on its own line
-    const line = lines.find(l => l.startsWith('OPENAI_API_KEY=')) || lines.find(l => l.startsWith('sk-'));
-    if (!line) throw new Error('Could not find key in config.env — see format instructions');
-    const key = line.includes('=') ? line.split('=').slice(1).join('=').trim() : line.trim();
-    if (!key || !key.startsWith('sk-')) throw new Error('Key does not look valid — should start with sk-');
-    API_KEY = key;
-    status.textContent = '✿  Ready to begin  ✿';
-    btn.style.display = 'inline-block';
-  } catch (err) {
-    status.style.color = '#d94f6b';
-    status.textContent = '✗ ' + err.message;
-  }
+function toggleKeyVis() {
+  const inp = document.getElementById('api-key-input');
+  const btn = document.getElementById('kv-btn');
+  inp.type = inp.type === 'password' ? 'text' : 'password';
+  btn.textContent = inp.type === 'password' ? 'show' : 'hide';
 }
 
-function beginSession() {
+async function tryLoadFromFile() {
+  try {
+    const res = await fetch('config.env');
+    if (!res.ok) return null;
+    const text = await res.text();
+    const lines = text.replace(//g, '
+').split('
+').map(l => l.trim()).filter(Boolean);
+    const line  = lines.find(l => l.startsWith('OPENAI_API_KEY=')) || lines.find(l => l.startsWith('sk-'));
+    if (!line) return null;
+    const key = line.includes('=') ? line.split('=').slice(1).join('=').trim() : line.trim();
+    return (key && key.startsWith('sk-')) ? key : null;
+  } catch { return null; }
+}
+
+async function beginSession() {
+  const status = document.getElementById('load-status');
+  const typed  = (document.getElementById('api-key-input').value || '').trim();
+  if (typed) {
+    if (!typed.startsWith('sk-')) { status.textContent = '✗ Key should start with sk-'; return; }
+    API_KEY = typed;
+  } else {
+    status.textContent = 'Looking for config.env…';
+    const fileKey = await tryLoadFromFile();
+    if (!fileKey) {
+      status.textContent = '✗ No key entered and config.env not found. Please paste your key above.';
+      return;
+    }
+    API_KEY = fileKey;
+  }
   document.getElementById('config-screen').style.display = 'none';
-  document.getElementById('main-app').style.display = 'block';
+  document.getElementById('main-app').style.display = 'grid';
   initApp();
 }
 
 function openSettings() {
+  document.getElementById('api-key-input').value = '';
+  document.getElementById('load-status').textContent = '';
   document.getElementById('config-screen').style.display = 'flex';
   document.getElementById('main-app').style.display = 'none';
-  document.getElementById('begin-btn').style.display = 'inline-block';
-  document.getElementById('load-status').textContent = '✿  Ready to begin  ✿';
 }
 
-document.addEventListener('DOMContentLoaded', () => { loadKeyFromEnv(); });
+document.addEventListener('DOMContentLoaded', async () => {
+  const key = await tryLoadFromFile();
+  if (key) document.getElementById('load-status').textContent = '✿ config.env found — click Begin or paste a different key';
+});
 
 // ═══════════════════════════════════════════════════════════════
 // STATE MACHINE
@@ -667,13 +663,23 @@ const TOPICS = {
 
 const STAGES = ['introduction', 'examination', 'challenge', 'resolution'];
 
-// Tone → which image pool to pick from
+// Image emotion descriptions — passed to LLM for selection
+const IMAGE_EMOTIONS = {
+  I_happ1: 'excited',
+  I_happ2: 'flattered',
+  I_norm1: 'thinking',
+  I_norm2: 'explaining',
+  I_norm3: 'approval',
+  I_sad1:  'correct/arguing a point',
+  I_sad2:  'frustrated',
+};
+// Fallback pools by tone (used if LLM image pick fails)
 const TONE_IMAGE_MAP = {
   warm:         ['I_norm1', 'I_norm2', 'I_norm3'],
-  probing:      ['I_norm1', 'I_norm2', 'I_norm3'],
+  probing:      ['I_norm1', 'I_norm2'],
   skeptical:    ['I_sad1',  'I_sad2'],
   delighted:    ['I_happ1', 'I_happ2'],
-  disappointed: ['I_sad1',  'I_sad2'],
+  disappointed: ['I_sad2',  'I_sad1'],
   playful:      ['I_norm3', 'I_happ1'],
 };
 
@@ -796,17 +802,15 @@ async function initAudio() {
 }
 
 function setVolumes(targetStem) {
-  if (!audioReady) return;
+  if (!audioReady || !audioCtx) return;
   const now  = audioCtx.currentTime;
-  const ramp = 1.2; // seconds
-
-  gainNodes.bass  && gainNodes.bass.gain.setTargetAtTime(musicOn ? 1 : 0, now, ramp / 3);
+  const ramp = 0.8;
+  gainNodes.bass  && gainNodes.bass.gain.setTargetAtTime(musicOn ? 0.85 : 0, now, ramp / 3);
   ['normal','happy','sad'].forEach(name => {
     if (!gainNodes[name]) return;
-    const target = (musicOn && name === targetStem) ? 1 : 0;
+    const target = (musicOn && name === targetStem) ? 0.8 : 0;
     gainNodes[name].gain.setTargetAtTime(target, now, ramp / 3);
   });
-
   activeStem = targetStem;
 }
 
@@ -822,13 +826,23 @@ function playJingle(type) {
 }
 
 async function toggleMusic() {
-  if (!audioReady) {
-    await initAudio();
-    setVolumes(activeStem);
+  const btn = document.getElementById('music-btn');
+  btn.textContent = '♩ Loading…';
+  try {
+    if (!audioReady) {
+      await initAudio();
+    }
+    // AudioContext may be suspended until a user gesture — resume it
+    if (audioCtx && audioCtx.state === 'suspended') {
+      await audioCtx.resume();
+    }
+    musicOn = !musicOn;
+    setVolumes(musicOn ? moodZone(S.mood) : activeStem);
+    btn.textContent = musicOn ? '♩ Music On' : '♩ Music Off';
+  } catch(e) {
+    btn.textContent = '♩ Music Off';
+    showError('Audio error: ' + e.message + ' — ensure audio files are in the same folder');
   }
-  musicOn = !musicOn;
-  setVolumes(activeStem);
-  document.getElementById('music-btn').textContent = musicOn ? '♩ Music On' : '♩ Music Off';
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -840,9 +854,9 @@ function applyMoodDelta(imageName) {
   S.mood = Math.max(1, Math.min(7, S.mood + (IMG_DELTA[imageName] ?? 0)));
   const newZone  = moodZone(S.mood);
 
-  if (prevZone === 'normal' && newZone === 'happy') { playJingle('happy'); setVolumes('happy'); }
-  else if (prevZone === 'normal' && newZone === 'sad')  { playJingle('sad');   setVolumes('sad');   }
-  else if (prevZone !== 'normal' && newZone === 'normal')                      { setVolumes('normal'); }
+  if (prevZone === 'normal' && newZone === 'happy') { playJingle('happy'); if(musicOn) setVolumes('happy'); }
+  else if (prevZone === 'normal' && newZone === 'sad')  { playJingle('sad');   if(musicOn) setVolumes('sad');   }
+  else if (prevZone !== 'normal' && newZone === 'normal')  { if(musicOn) setVolumes('normal'); }
 
   renderMood();
 }
@@ -895,11 +909,12 @@ function crossfade(imgName) {
 let typewriterTimer = null;
 
 function showDialogueBox(show) {
-  document.getElementById('darwin-box').style.display = show ? 'block' : 'none';
+  // Dialogue box is always visible — no-op
 }
 
 function showInputWrap(show) {
   document.getElementById('player-input-wrap').style.display = show ? 'flex' : 'none';
+  document.getElementById('vn-continue').style.display = show ? 'none' : 'none';
 }
 
 function addMessage(role, html) {
@@ -1099,12 +1114,32 @@ ${ragContext}
 ---
 Respond in character as Darwin. 3–5 sentences only. Do not add preamble or stage directions.`;
 
-  return callOpenAI({
+  const imageList = Object.entries(IMAGE_EMOTIONS)
+    .map(([k,v]) => `${k}: ${v}`).join(', ');
+
+  const fullSys = sys + `
+
+---
+After your response, you must also choose which image to display.
+Available images: ${imageList}
+Respond ONLY as a JSON object with two keys:
+  "response": your in-character reply (3-5 sentences as Darwin),
+  "image": the image key that best fits your emotional state right now (e.g. "I_norm2")`;
+
+  const raw = await callOpenAI({
     model: 'gpt-4o',
     messages: [...S.history, { role:'user', content: userInput }],
-    system: sys,
-    max_tokens: 350,
+    system: fullSys,
+    max_tokens: 450,
+    json: true,
   });
+
+  try {
+    const parsed = JSON.parse(raw);
+    return { response: parsed.response || raw, image: parsed.image || null };
+  } catch {
+    return { response: raw, image: null };
+  }
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -1157,11 +1192,15 @@ async function handleTurn(userInput) {
     // 3. RAG retrieval
     const context = ragRetrieve(userInput, S.topic);
 
-    // 4. Generate response
-    const response = await generate(userInput, cls, context);
+    // 4. Generate response + image selection
+    const result   = await generate(userInput, cls, context);
+    const response = result.response;
 
-    // 5. Image selection
-    const imgName = pickImage(S.tone);
+    // 5. Image: use LLM pick if valid, else fallback to tone pool
+    const validImages = Object.keys(IMAGE_EMOTIONS);
+    const imgName = (result.image && validImages.includes(result.image))
+      ? result.image
+      : pickImage(S.tone);
 
     // 6. Update mood + audio
     applyMoodDelta(imgName);
@@ -1209,7 +1248,7 @@ function handleKey(e) {
 async function initApp() {
   updateStateDisplay();
   renderMood();
-  crossfade('I_norm1');
+  crossfade('I_norm2'); // explaining = good opening image
 
   // Darwin's opening message
   setTyping(true);
