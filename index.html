@@ -600,8 +600,8 @@ async function loadKeyFromEnv() {
   const btn    = document.getElementById('begin-btn');
   try {
     status.textContent = 'Loading…';
-    const res = await fetch('.env');
-    if (!res.ok) throw new Error('.env not found — make sure you are running a local server');
+    const res = await fetch('config.env');
+    if (!res.ok) throw new Error('config.env not found — make sure it is in the same folder as the HTML file');
     const text = await res.text();
     const line = text.split('\n').map(l => l.trim()).find(l => l.startsWith('OPENAI_API_KEY='));
     if (!line) throw new Error('OPENAI_API_KEY= line not found in .env');
