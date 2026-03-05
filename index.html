@@ -4,530 +4,496 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Dialogue with Darwin</title>
-  <link href="https://fonts.googleapis.com/css2?family=Philosopher:ital,wght@0,400;0,700;1,400&family=Crimson+Pro:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Josefin+Sans:wght@300;400;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=DotGothic16&family=Zen+Maru+Gothic:wght@400;500;700&family=Stick&display=swap" rel="stylesheet">
   <style>
     :root {
-      --cream:      #fdf6e3;
-      --parchment:  #f5ead0;
-      --sepia:      #c8a97e;
-      --brown:      #5c3d1e;
-      --dark:       #1a1008;
-      --dialogue-bg: rgba(18, 10, 4, 0.82);
-      --dialogue-border: rgba(200, 169, 126, 0.4);
-      --name-bg:    #5c3d1e;
-      --name-color: #fdf0d5;
-      --text-main:  #f0e2c8;
-      --text-dim:   rgba(240,226,200,0.55);
-      --accent:     #c8a97e;
-      --input-bg:   rgba(18,10,4,0.88);
-      --btn-bg:     #3d2510;
-      --btn-hover:  #5c3d1e;
-      --error-bg:   rgba(90,20,20,0.92);
+      --pink-light:  #ffe0ec;
+      --pink-mid:    #ffb7d0;
+      --pink-deep:   #e8608a;
+      --pink-border: #f07ca0;
+      --pink-dark:   #b03060;
+      --cream:       #fff8fb;
+      --lavender:    #e8d5f5;
+      --lav-border:  #c8a0e8;
+      --sky:         #d5eeff;
+      --gold:        #f0c060;
+      --gold-dark:   #c89020;
+      --text-dark:   #2a1020;
+      --text-mid:    #6a3050;
+      --text-light:  #c87090;
+      --white:       #ffffff;
+      --shadow:      rgba(180,80,120,0.18);
     }
 
     *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+    html, body { width:100%; height:100%; overflow:hidden; }
 
-    html, body {
-      width: 100%; height: 100%;
-      overflow: hidden;
-      font-family: 'Crimson Pro', serif;
-      background: #0d0806;
+    body {
+      background: var(--pink-light);
+      font-family: 'Zen Maru Gothic', sans-serif;
+      color: var(--text-dark);
       cursor: default;
     }
 
-    /* ══════════════════════════════════════════════════
-       CONFIG SCREEN
-    ══════════════════════════════════════════════════ */
+    /* ═══ SAKURA PETAL ANIMATION ═══════════════════════════ */
+    .petal {
+      position: fixed;
+      top: -30px;
+      width: 12px; height: 14px;
+      background: radial-gradient(ellipse at 40% 35%, #ffcce0 0%, #f090b0 60%, #e06888 100%);
+      border-radius: 150% 0 150% 0;
+      opacity: 0;
+      pointer-events: none;
+      z-index: 9998;
+      animation: fall linear infinite;
+    }
+    @keyframes fall {
+      0%   { transform: translateY(0) rotate(0deg) translateX(0);   opacity: 0; }
+      5%   { opacity: 0.75; }
+      90%  { opacity: 0.5; }
+      100% { transform: translateY(110vh) rotate(720deg) translateX(60px); opacity: 0; }
+    }
+
+    /* ═══ CONFIG / SPLASH SCREEN ════════════════════════════ */
     #config-screen {
       position: fixed; inset: 0;
-      background: radial-gradient(ellipse at 50% 40%, #2a1a08 0%, #0d0806 80%);
       display: flex; align-items: center; justify-content: center;
-      z-index: 800;
+      background:
+        radial-gradient(ellipse at 30% 20%, #ffd5e8 0%, transparent 60%),
+        radial-gradient(ellipse at 70% 80%, #e8d0ff 0%, transparent 60%),
+        linear-gradient(160deg, #fff0f6 0%, #fde8f4 50%, #f0e0ff 100%);
+      z-index: 500;
     }
 
-    .config-panel {
-      background: rgba(18,10,4,0.96);
-      border: 1px solid var(--dialogue-border);
-      width: min(560px, 92vw);
+    .splash-panel {
+      background: rgba(255,255,255,0.9);
+      border: 3px solid var(--pink-border);
+      border-radius: 4px;
+      width: min(520px, 92vw);
       max-height: 92vh;
       overflow-y: auto;
-      padding: 2.75rem 2.75rem 2.25rem;
+      padding: 2.5rem 2.5rem 2rem;
+      box-shadow:
+        4px 4px 0 var(--pink-mid),
+        8px 8px 0 rgba(230,150,180,0.25);
       position: relative;
-      box-shadow: 0 0 60px rgba(0,0,0,0.8), 0 0 0 1px rgba(200,169,126,0.1);
-      animation: fadeUp 0.45s ease;
+      animation: splashIn 0.4s ease;
     }
 
-    @keyframes fadeUp {
-      from { opacity:0; transform: translateY(18px); }
-      to   { opacity:1; transform: translateY(0); }
+    @keyframes splashIn {
+      from { opacity:0; transform: scale(0.93) translateY(12px); }
+      to   { opacity:1; transform: scale(1)    translateY(0); }
     }
 
-    .config-panel::before {
-      content: '';
-      position: absolute; inset: 8px;
-      border: 1px solid rgba(200,169,126,0.12);
-      pointer-events: none;
+    /* Corner flowers */
+    .splash-panel::before, .splash-panel::after {
+      position: absolute; font-size: 1.4rem; line-height: 1;
+      color: var(--pink-border); pointer-events: none;
     }
+    .splash-panel::before { content:'✿'; top:10px; left:14px; }
+    .splash-panel::after  { content:'✿'; bottom:10px; right:14px; }
 
-    .config-deco {
+    .splash-deco {
       text-align: center;
-      color: var(--sepia);
-      opacity: 0.5;
-      letter-spacing: 0.6em;
-      font-size: 0.85rem;
-      margin-bottom: 1rem;
+      font-size: 1.1rem;
+      color: var(--pink-deep);
+      letter-spacing: 0.5em;
+      margin-bottom: 0.75rem;
     }
 
-    .config-title {
-      font-family: 'Philosopher', serif;
-      font-size: 2.1rem;
-      font-weight: 700;
-      color: var(--sepia);
+    .splash-title {
+      font-family: 'DotGothic16', monospace;
+      font-size: 1.75rem;
       text-align: center;
-      letter-spacing: 0.04em;
+      color: var(--pink-dark);
+      letter-spacing: 0.05em;
+      text-shadow: 2px 2px 0 var(--pink-mid);
+      margin-bottom: 0.2rem;
     }
 
-    .config-subtitle {
-      font-family: 'Crimson Pro', serif;
+    .splash-sub {
+      font-size: 0.88rem;
       font-style: italic;
-      color: var(--text-dim);
-      font-size: 0.95rem;
       text-align: center;
-      margin: 0.3rem 0 2rem;
+      color: var(--text-light);
+      margin-bottom: 1.75rem;
     }
 
-    .config-divider {
+    .splash-divider {
       border: none;
-      border-top: 1px solid rgba(200,169,126,0.18);
-      margin: 1.5rem 0;
+      border-top: 2px dashed var(--pink-mid);
+      margin: 1.25rem 0;
     }
 
-    .config-field { margin-bottom: 1.5rem; }
-
-    .config-label {
-      display: block;
-      font-family: 'Josefin Sans', sans-serif;
-      font-size: 0.7rem;
-      font-weight: 600;
-      letter-spacing: 0.18em;
-      text-transform: uppercase;
-      color: var(--sepia);
-      margin-bottom: 0.45rem;
+    #load-status {
+      text-align: center;
+      font-size: 1rem;
+      color: var(--text-mid);
+      padding: 0.5rem 0;
+      min-height: 2em;
     }
 
-    .config-note {
-      font-size: 0.85rem;
-      font-style: italic;
-      color: var(--text-dim);
-      margin-bottom: 0.6rem;
-      line-height: 1.5;
-    }
-
-    .key-wrapper { position: relative; }
-
-    .config-input, .config-textarea {
-      width: 100%;
-      padding: 0.7rem 1rem;
-      background: rgba(255,255,255,0.04);
-      border: 1px solid rgba(200,169,126,0.25);
-      font-family: 'Crimson Pro', serif;
-      font-size: 0.95rem;
-      color: var(--text-main);
-      outline: none;
-      transition: border-color 0.2s;
-    }
-    .config-input:focus, .config-textarea:focus {
-      border-color: rgba(200,169,126,0.6);
-      background: rgba(255,255,255,0.06);
-    }
-    .config-input::placeholder { color: var(--text-dim); }
-    .key-wrapper .config-input { padding-right: 3.5rem; }
-
-    .toggle-key {
-      position: absolute; right: 0.9rem; top: 50%; transform: translateY(-50%);
-      background: none; border: none; cursor: pointer;
-      font-family: 'Josefin Sans', sans-serif;
-      font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase;
-      color: var(--text-dim);
-      transition: color 0.2s;
-    }
-    .toggle-key:hover { color: var(--sepia); }
-
-    .config-textarea {
-      min-height: 200px; resize: vertical;
-      line-height: 1.65; font-size: 0.88rem;
-    }
-
-    .config-btn {
-      width: 100%; padding: 0.9rem;
-      background: var(--btn-bg);
-      color: var(--sepia);
-      border: 1px solid rgba(200,169,126,0.35);
-      font-family: 'Josefin Sans', sans-serif;
-      font-size: 0.85rem; font-weight: 600;
-      letter-spacing: 0.2em; text-transform: uppercase;
+    #begin-btn {
+      display: none;
+      margin: 1.25rem auto 0;
+      padding: 0.75rem 2.5rem;
+      background: var(--pink-deep);
+      color: var(--white);
+      border: 2px solid var(--pink-dark);
+      border-radius: 2px;
+      font-family: 'DotGothic16', monospace;
+      font-size: 1rem;
+      letter-spacing: 0.12em;
       cursor: pointer;
-      transition: background 0.2s, border-color 0.2s;
-      margin-top: 0.5rem;
+      box-shadow: 3px 3px 0 var(--pink-dark);
+      transition: transform 0.1s, box-shadow 0.1s;
+      width: 100%;
     }
-    .config-btn:hover { background: var(--btn-hover); border-color: var(--sepia); }
+    #begin-btn:hover  { transform: translate(-1px,-1px); box-shadow: 4px 4px 0 var(--pink-dark); }
+    #begin-btn:active { transform: translate(2px,2px);   box-shadow: 1px 1px 0 var(--pink-dark); }
 
-    /* ══════════════════════════════════════════════════
-       VN SCENE — FULL SCREEN LAYOUT
-    ══════════════════════════════════════════════════ */
+    /* ═══ MAIN APP ══════════════════════════════════════════ */
     #main-app {
       display: none;
       position: fixed; inset: 0;
     }
 
-    /* Background scene — CSS Victorian study */
-    .vn-bg {
+    /* Scene background */
+    .scene-bg {
       position: absolute; inset: 0;
       background:
-        /* bookshelf shadows */
-        repeating-linear-gradient(
-          90deg,
-          transparent 0px, transparent 38px,
-          rgba(0,0,0,0.18) 38px, rgba(0,0,0,0.18) 42px
-        ),
-        /* warm ambient light from window */
-        radial-gradient(ellipse 60% 80% at 75% 20%, rgba(200,150,80,0.13) 0%, transparent 70%),
-        /* floor gradient */
-        linear-gradient(180deg, #1a100a 0%, #26180d 55%, #1a0e08 100%);
+        radial-gradient(ellipse 80% 50% at 50% 0%, #ffe8f2 0%, transparent 70%),
+        linear-gradient(180deg, #fff0f6 0%, #fde4f0 40%, #f8d8ee 70%, #f0d0e8 100%);
       overflow: hidden;
     }
 
-    /* Subtle dust particles */
-    .vn-bg::before {
+    /* Ground strip */
+    .scene-bg::after {
       content: '';
-      position: absolute; inset: 0;
-      background-image:
-        radial-gradient(1px 1px at 20% 30%, rgba(200,169,126,0.3) 0%, transparent 100%),
-        radial-gradient(1px 1px at 60% 15%, rgba(200,169,126,0.2) 0%, transparent 100%),
-        radial-gradient(1px 1px at 80% 50%, rgba(200,169,126,0.15) 0%, transparent 100%),
-        radial-gradient(1px 1px at 40% 70%, rgba(200,169,126,0.1) 0%, transparent 100%);
-      pointer-events: none;
+      position: absolute;
+      bottom: 210px; left: 0; right: 0; height: 3px;
+      background: linear-gradient(90deg, transparent, var(--pink-mid), transparent);
+      opacity: 0.4;
     }
 
-    /* Vignette */
-    .vn-bg::after {
-      content: '';
-      position: absolute; inset: 0;
-      background: radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.6) 100%);
-      pointer-events: none;
-    }
-
-    /* ─── TOP BAR ───────────────────────────────────── */
+    /* ─── TOP BAR ─────────────────────────────────────── */
     .vn-topbar {
       position: absolute; top: 0; left: 0; right: 0;
       display: flex; align-items: center; justify-content: space-between;
-      padding: 0.75rem 1.5rem;
-      background: linear-gradient(180deg, rgba(0,0,0,0.55) 0%, transparent 100%);
-      z-index: 10;
+      padding: 0.5rem 1.25rem;
+      background: rgba(255,240,248,0.88);
+      border-bottom: 2px solid var(--pink-mid);
+      z-index: 20;
     }
 
-    .vn-title {
-      font-family: 'Philosopher', serif;
-      font-style: italic;
-      font-size: 0.95rem;
-      color: rgba(200,169,126,0.7);
+    .vn-game-title {
+      font-family: 'DotGothic16', monospace;
+      font-size: 0.9rem;
+      color: var(--pink-dark);
       letter-spacing: 0.06em;
     }
 
-    .vn-state-info {
-      display: flex; gap: 1.5rem; align-items: center;
+    .vn-state-row {
+      display: flex; gap: 1rem;
     }
 
-    .vn-state-chip {
-      font-family: 'Josefin Sans', sans-serif;
+    .vn-chip {
+      font-family: 'DotGothic16', monospace;
+      font-size: 0.62rem;
+      color: var(--text-mid);
+      background: var(--pink-light);
+      border: 1px solid var(--pink-border);
+      padding: 0.2rem 0.6rem;
+    }
+    .vn-chip span { color: var(--pink-dark); }
+
+    .topbar-btns { display: flex; gap: 0.4rem; }
+
+    .topbtn {
+      background: var(--white);
+      border: 2px solid var(--pink-border);
+      color: var(--pink-dark);
+      font-family: 'DotGothic16', monospace;
       font-size: 0.65rem;
-      letter-spacing: 0.15em;
-      text-transform: uppercase;
-      color: rgba(200,169,126,0.45);
-    }
-
-    .vn-state-chip span {
-      color: rgba(200,169,126,0.75);
-    }
-
-    .vn-topbar-btns { display: flex; gap: 0.5rem; }
-
-    .vn-topbtn {
-      background: rgba(255,255,255,0.05);
-      border: 1px solid rgba(200,169,126,0.2);
-      color: rgba(200,169,126,0.55);
-      font-family: 'Josefin Sans', sans-serif;
-      font-size: 0.65rem;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      padding: 0.35rem 0.8rem;
+      padding: 0.25rem 0.7rem;
       cursor: pointer;
-      transition: all 0.2s;
+      box-shadow: 2px 2px 0 var(--pink-mid);
+      transition: transform 0.1s, box-shadow 0.1s;
     }
-    .vn-topbtn:hover { border-color: rgba(200,169,126,0.5); color: var(--sepia); background: rgba(255,255,255,0.08); }
+    .topbtn:hover  { transform: translate(-1px,-1px); box-shadow: 3px 3px 0 var(--pink-mid); }
+    .topbtn:active { transform: translate(1px,1px);   box-shadow: 1px 1px 0 var(--pink-mid); }
 
-    /* ─── CHARACTER SPRITE ──────────────────────────── */
+    /* ─── SPRITE ──────────────────────────────────────── */
     .vn-sprite-wrap {
       position: absolute;
-      bottom: 220px; /* sits above dialogue box */
+      bottom: 210px;
       left: 50%; transform: translateX(-50%);
-      width: min(420px, 52vw);
-      /* tall portrait aspect */
+      width: min(380px, 48vw);
       aspect-ratio: 3 / 4;
       z-index: 5;
-      filter: drop-shadow(0 20px 60px rgba(0,0,0,0.7));
+      filter: drop-shadow(0 12px 32px rgba(200,80,120,0.2));
+      animation: spriteIn 0.5s ease;
+    }
+
+    @keyframes spriteIn {
+      from { opacity:0; transform: translateX(-50%) translateY(14px); }
+      to   { opacity:1; transform: translateX(-50%) translateY(0); }
     }
 
     .portrait-img {
       position: absolute; inset: 0;
       width: 100%; height: 100%;
       object-fit: contain;
-      transition: opacity 0.5s ease;
+      transition: opacity 0.45s ease;
     }
-
     .portrait-img.fade-out { opacity: 0; }
 
-    /* Sprite entrance animation */
-    @keyframes spriteIn {
-      from { opacity:0; transform: translateY(12px); }
-      to   { opacity:1; transform: translateY(0); }
-    }
-
-    .vn-sprite-wrap { animation: spriteIn 0.6s ease; }
-
-    /* ─── DIALOGUE BOX ──────────────────────────────── */
+    /* ─── DIALOGUE BOX ────────────────────────────────── */
     .vn-dialogue {
       position: absolute;
       bottom: 0; left: 0; right: 0;
-      height: 220px;
-      background: var(--dialogue-bg);
-      border-top: 1px solid var(--dialogue-border);
-      z-index: 10;
-      padding: 0 2.5rem 1.2rem;
-      backdrop-filter: blur(4px);
+      height: 210px;
+      background:
+        linear-gradient(180deg, rgba(255,245,251,0.97) 0%, rgba(255,238,248,0.98) 100%);
+      border-top: 3px solid var(--pink-border);
+      z-index: 15;
+      padding: 0 1.5rem 0.8rem;
     }
 
-    /* Subtle top inner glow */
+    /* top decorative strip */
     .vn-dialogue::before {
       content: '';
-      position: absolute; top: 0; left: 0; right: 0; height: 1px;
-      background: linear-gradient(90deg, transparent, rgba(200,169,126,0.4), transparent);
+      position: absolute; top: -8px; left: 20px; right: 20px; height: 5px;
+      background: repeating-linear-gradient(
+        90deg,
+        var(--pink-mid) 0px, var(--pink-mid) 8px,
+        transparent 8px, transparent 14px
+      );
+      border-radius: 2px;
     }
 
-    /* ── Name plate ── */
+    /* Corner ornaments on dialogue box */
+    .dial-corner {
+      position: absolute;
+      font-size: 1.1rem;
+      color: var(--pink-border);
+      line-height: 1;
+    }
+    .dial-corner.tl { top: 6px; left: 10px; }
+    .dial-corner.tr { top: 6px; right: 10px; }
+
+    /* Name plate */
     .vn-nameplate {
       position: absolute;
-      top: -1.6rem; left: 2.5rem;
-      background: var(--name-bg);
-      border: 1px solid rgba(200,169,126,0.35);
+      top: -1.7rem; left: 1.5rem;
+      background: var(--pink-deep);
+      color: var(--white);
+      font-family: 'DotGothic16', monospace;
+      font-size: 0.95rem;
+      padding: 0.28rem 1.2rem 0.22rem;
+      border: 2px solid var(--pink-dark);
       border-bottom: none;
-      padding: 0.3rem 1.25rem 0.25rem;
-      font-family: 'Philosopher', serif;
-      font-size: 1rem;
-      font-weight: 700;
-      color: var(--name-color);
-      letter-spacing: 0.1em;
+      letter-spacing: 0.06em;
+      box-shadow: 2px -2px 0 var(--pink-dark);
     }
 
     .vn-nameplate.user-name {
-      background: #1e1408;
-      left: auto; right: 2.5rem;
-      color: var(--sepia);
+      background: var(--lavender);
+      color: var(--text-dark);
+      border-color: var(--lav-border);
+      box-shadow: 2px -2px 0 var(--lav-border);
+      left: auto; right: 1.5rem;
     }
 
-    /* ── Dialogue text ── */
-    .vn-text-area {
-      padding-top: 1.1rem;
-      height: 130px;
+    /* Text scroll area */
+    .vn-text-scroll {
+      padding-top: 1rem;
+      height: 148px;
       overflow-y: auto;
       scrollbar-width: none;
     }
-    .vn-text-area::-webkit-scrollbar { display: none; }
+    .vn-text-scroll::-webkit-scrollbar { display: none; }
 
     .vn-dialogue-text {
-      font-family: 'Crimson Pro', serif;
-      font-size: 1.2rem;
-      line-height: 1.75;
-      color: var(--text-main);
-      letter-spacing: 0.01em;
+      font-family: 'Zen Maru Gothic', sans-serif;
+      font-size: 1.05rem;
+      line-height: 1.85;
+      color: var(--text-dark);
     }
 
-    /* Typewriter cursor */
+    /* blinking cursor */
     .vn-cursor {
       display: inline-block;
-      width: 2px; height: 1.1em;
-      background: var(--sepia);
-      margin-left: 2px;
+      width: 2px; height: 1em;
+      background: var(--pink-deep);
+      margin-left: 1px;
       vertical-align: text-bottom;
-      animation: blink 0.8s infinite;
+      animation: cursorBlink 0.7s step-end infinite;
     }
+    @keyframes cursorBlink { 50% { opacity: 0; } }
 
-    @keyframes blink {
-      0%, 100% { opacity: 1; }
-      50%       { opacity: 0; }
-    }
-
-    /* Continue indicator */
-    .vn-continue {
-      position: absolute;
-      bottom: 1rem; right: 2.5rem;
-      font-size: 0.75rem;
-      color: rgba(200,169,126,0.5);
-      font-family: 'Josefin Sans', sans-serif;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      animation: pulse 1.8s ease-in-out infinite;
-      display: none;
-    }
-
-    @keyframes pulse {
-      0%, 100% { opacity: 0.4; transform: translateY(0); }
-      50%       { opacity: 1;   transform: translateY(-3px); }
-    }
-
-    /* ── Thinking state ── */
+    /* thinking dots */
     .vn-thinking {
-      font-family: 'Crimson Pro', serif;
       font-style: italic;
       font-size: 1rem;
-      color: var(--text-dim);
-      padding-top: 1.3rem;
+      color: var(--text-light);
+      padding-top: 1.1rem;
+      display: none;
     }
-
     .vn-thinking .dots::after {
       content: '';
       animation: dotcycle 1.4s infinite;
     }
     @keyframes dotcycle {
-      0%  { content: '.'; }
-      33% { content: '..'; }
-      66% { content: '...'; }
+      0%  { content: '．'; }
+      33% { content: '．．'; }
+      66% { content: '．．．'; }
       100%{ content: ''; }
     }
 
-    /* ─── INPUT BOX ─────────────────────────────────── */
+    /* ▼ continue prompt */
+    .vn-continue {
+      position: absolute; bottom: 0.6rem; right: 1.5rem;
+      font-family: 'DotGothic16', monospace;
+      font-size: 0.72rem;
+      color: var(--pink-deep);
+      display: none;
+      animation: bobble 1s ease-in-out infinite;
+    }
+    @keyframes bobble {
+      0%,100% { transform: translateY(0); }
+      50%      { transform: translateY(-4px); }
+    }
+
+    /* ─── PLAYER INPUT BOX ────────────────────────────── */
     .vn-input-wrap {
       position: absolute;
       bottom: 0; left: 0; right: 0;
-      height: 220px;
-      background: var(--input-bg);
-      border-top: 1px solid var(--dialogue-border);
-      display: none; /* shown when it's player turn */
+      height: 210px;
+      background: rgba(255,245,251,0.97);
+      border-top: 3px solid var(--lav-border);
+      z-index: 16;
+      display: none;
       flex-direction: column;
       justify-content: center;
-      padding: 1.25rem 2.5rem 1.25rem;
-      z-index: 11;
-      backdrop-filter: blur(4px);
+      padding: 1rem 1.5rem;
     }
 
     .vn-input-wrap::before {
       content: '';
-      position: absolute; top: 0; left: 0; right: 0; height: 1px;
-      background: linear-gradient(90deg, transparent, rgba(200,169,126,0.3), transparent);
+      position: absolute; top: -8px; left: 20px; right: 20px; height: 5px;
+      background: repeating-linear-gradient(
+        90deg,
+        var(--lav-border) 0px, var(--lav-border) 8px,
+        transparent 8px, transparent 14px
+      );
+      border-radius: 2px;
     }
 
     .vn-input-label {
-      font-family: 'Josefin Sans', sans-serif;
+      font-family: 'DotGothic16', monospace;
       font-size: 0.65rem;
-      letter-spacing: 0.2em;
+      color: var(--text-light);
+      letter-spacing: 0.14em;
       text-transform: uppercase;
-      color: var(--text-dim);
-      margin-bottom: 0.6rem;
+      margin-bottom: 0.5rem;
     }
 
-    .vn-input-row { display: flex; gap: 0.75rem; align-items: flex-end; }
+    .vn-input-row { display: flex; gap: 0.6rem; align-items: flex-end; }
 
     .vn-input {
       flex: 1;
-      background: rgba(255,255,255,0.05);
-      border: 1px solid rgba(200,169,126,0.3);
-      padding: 0.75rem 1rem;
-      font-family: 'Crimson Pro', serif;
-      font-size: 1.1rem;
-      color: var(--text-main);
+      background: var(--white);
+      border: 2px solid var(--lav-border);
+      padding: 0.65rem 0.9rem;
+      font-family: 'Zen Maru Gothic', sans-serif;
+      font-size: 1rem;
+      color: var(--text-dark);
       outline: none;
       resize: none;
       line-height: 1.5;
-      min-height: 54px;
-      max-height: 110px;
-      transition: border-color 0.2s;
+      min-height: 52px; max-height: 100px;
+      box-shadow: inset 2px 2px 0 rgba(200,160,230,0.15);
+      transition: border-color 0.15s;
     }
-    .vn-input:focus { border-color: rgba(200,169,126,0.65); }
-    .vn-input:disabled { opacity: 0.4; }
-    .vn-input::placeholder { color: var(--text-dim); font-style: italic; }
+    .vn-input:focus { border-color: var(--pink-border); }
+    .vn-input:disabled { opacity: 0.5; }
+    .vn-input::placeholder { color: #d0a8c0; font-style: italic; }
 
     .vn-send-btn {
-      height: 54px; min-width: 100px;
-      background: var(--btn-bg);
-      color: var(--sepia);
-      border: 1px solid rgba(200,169,126,0.35);
-      font-family: 'Josefin Sans', sans-serif;
-      font-size: 0.75rem; font-weight: 600;
-      letter-spacing: 0.2em; text-transform: uppercase;
+      min-width: 90px; height: 52px;
+      background: var(--lavender);
+      color: var(--text-dark);
+      border: 2px solid var(--lav-border);
+      font-family: 'DotGothic16', monospace;
+      font-size: 0.78rem;
+      letter-spacing: 0.1em;
       cursor: pointer;
-      transition: background 0.2s, border-color 0.2s;
+      box-shadow: 3px 3px 0 var(--lav-border);
+      transition: transform 0.1s, box-shadow 0.1s;
     }
-    .vn-send-btn:hover:not(:disabled) { background: var(--btn-hover); border-color: var(--sepia); }
-    .vn-send-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+    .vn-send-btn:hover:not(:disabled)  { transform: translate(-1px,-1px); box-shadow: 4px 4px 0 var(--lav-border); }
+    .vn-send-btn:active:not(:disabled) { transform: translate(2px,2px);   box-shadow: 1px 1px 0 var(--lav-border); }
+    .vn-send-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
-    /* ─── ERROR TOAST ───────────────────────────────── */
+    /* ─── ERROR TOAST ─────────────────────────────────── */
     #error-toast {
-      position: fixed; bottom: 240px; left: 50%;
-      transform: translateX(-50%) translateY(12px);
-      background: var(--error-bg);
-      color: #f9d0d0;
-      border: 1px solid rgba(180,60,60,0.5);
-      padding: 0.6rem 1.4rem;
-      font-family: 'Crimson Pro', serif;
-      font-size: 0.95rem;
+      position: fixed;
+      bottom: 230px; left: 50%;
+      transform: translateX(-50%) translateY(10px);
+      background: rgba(220,60,80,0.92);
+      color: #fff;
+      border: 2px solid #ff8090;
+      padding: 0.55rem 1.4rem;
+      font-family: 'DotGothic16', monospace;
+      font-size: 0.82rem;
       opacity: 0;
       transition: opacity 0.3s, transform 0.3s;
       pointer-events: none;
-      z-index: 100;
-      max-width: 70%;
+      z-index: 600;
+      max-width: 72%;
       text-align: center;
+      box-shadow: 3px 3px 0 rgba(180,40,60,0.4);
     }
-    #error-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+    #error-toast.show { opacity:1; transform: translateX(-50%) translateY(0); }
   </style>
 </head>
 <body>
 
-<!-- ══════════════════════════════════════════════════
-     SPLASH / LOADING SCREEN
-══════════════════════════════════════════════════ -->
+<!-- Sakura petals -->
+<div id="petal-container"></div>
+
+<!-- ════════════════════════════════════════════════
+     SPLASH SCREEN
+════════════════════════════════════════════════ -->
 <div id="config-screen">
-  <div class="config-panel">
-    <div class="config-deco">✦ &nbsp; ✦ &nbsp; ✦</div>
-    <h1 class="config-title">Dialogue with Darwin</h1>
-    <p class="config-subtitle">On the Origin of Species &amp; Other Works</p>
-    <hr class="config-divider">
-    <p class="config-note" id="load-status" style="text-align:center; font-size:1rem; min-height:1.4em;">
-      Loading…
-    </p>
-    <button class="config-btn" id="begin-btn" onclick="beginSession()" style="display:none;">
-      Begin the Inquiry
-    </button>
+  <div class="splash-panel">
+    <div class="splash-deco">✿ ❀ ✿ ❀ ✿</div>
+    <h1 class="splash-title">Dialogue with Darwin</h1>
+    <p class="splash-sub">On the Origin of Species &amp; Other Works</p>
+    <hr class="splash-divider">
+    <p id="load-status">Loading…</p>
+    <button id="begin-btn" onclick="beginSession()">❀ Begin ❀</button>
   </div>
 </div>
 
-<!-- ══════════════════════════════════════════════════
+<!-- ════════════════════════════════════════════════
      MAIN VN APP
-══════════════════════════════════════════════════ -->
+════════════════════════════════════════════════ -->
 <div id="main-app">
-  <!-- Scene background -->
-  <div class="vn-bg"></div>
+  <div class="scene-bg"></div>
 
   <!-- Top bar -->
   <div class="vn-topbar">
-    <div class="vn-title">Dialogue with Darwin</div>
-    <div class="vn-state-info">
-      <div class="vn-state-chip">Topic <span id="state-topic">Natural Selection</span></div>
-      <div class="vn-state-chip">Stage <span id="state-stage">Introduction</span></div>
-      <div class="vn-state-chip">Tone <span id="state-tone">Warm</span></div>
+    <div class="vn-game-title">✿ Dialogue with Darwin</div>
+    <div class="vn-state-row">
+      <div class="vn-chip">Topic <span id="state-topic">Natural Selection</span></div>
+      <div class="vn-chip">Stage <span id="state-stage">Introduction</span></div>
+      <div class="vn-chip">Tone  <span id="state-tone">Warm</span></div>
     </div>
-    <div class="vn-topbar-btns">
-      <button class="vn-topbtn" id="music-btn" onclick="toggleMusic()">♩ Music</button>
-      <button class="vn-topbtn" onclick="openSettings()">⚙ Settings</button>
+    <div class="topbar-btns">
+      <button class="topbtn" id="music-btn" onclick="toggleMusic()">♪ Music</button>
+      <button class="topbtn" onclick="openSettings()">⚙ Menu</button>
     </div>
   </div>
 
@@ -537,21 +503,23 @@
     <img id="portrait-b" class="portrait-img fade-out" src="" alt="Darwin" />
   </div>
 
-  <!-- Darwin's dialogue box -->
+  <!-- Darwin dialogue box -->
   <div class="vn-dialogue" id="darwin-box">
+    <span class="dial-corner tl">✿</span>
+    <span class="dial-corner tr">✿</span>
     <div class="vn-nameplate" id="nameplate">Charles Darwin</div>
-    <div class="vn-text-area">
+    <div class="vn-text-scroll">
       <div id="vn-dialogue-text" class="vn-dialogue-text"></div>
-      <div id="thinking-box" class="vn-thinking" style="display:none;">
+      <div id="thinking-box" class="vn-thinking">
         Contemplating<span class="dots"></span>
       </div>
     </div>
-    <div class="vn-continue" id="vn-continue">▾ respond</div>
+    <div class="vn-continue" id="vn-continue">▼ continue</div>
   </div>
 
-  <!-- Player input (shown during player turn) -->
+  <!-- Player input -->
   <div class="vn-input-wrap" id="player-input-wrap">
-    <div class="vn-input-label">Your Response</div>
+    <div class="vn-input-label">✦ Your Response ✦</div>
     <div class="vn-input-row">
       <textarea
         class="vn-input"
@@ -561,12 +529,34 @@
         onkeydown="handleKey(event)"
         oninput="autoResize(this)"
       ></textarea>
-      <button class="vn-send-btn" id="send-btn" onclick="handleSend()">Send</button>
+      <button class="vn-send-btn" id="send-btn" onclick="handleSend()">Send ❀</button>
     </div>
   </div>
 </div>
 
 <div id="error-toast"></div>
+
+<!-- Petal spawner -->
+<script>
+(function() {
+  const container = document.getElementById('petal-container');
+  function spawnPetal() {
+    const p = document.createElement('div');
+    p.className = 'petal';
+    p.style.left = Math.random() * 100 + 'vw';
+    p.style.animationDuration = (6 + Math.random() * 8) + 's';
+    p.style.animationDelay    = (Math.random() * 4) + 's';
+    p.style.transform         = 'rotate(' + (Math.random() * 360) + 'deg)';
+    p.style.width  = (8 + Math.random() * 10) + 'px';
+    p.style.height = (10 + Math.random() * 10) + 'px';
+    p.style.opacity = 0;
+    container.appendChild(p);
+    setTimeout(() => p.remove(), 16000);
+  }
+  for (let i = 0; i < 18; i++) setTimeout(spawnPetal, i * 600);
+  setInterval(spawnPetal, 900);
+})();
+</script>
 
 <script>
 'use strict';
@@ -601,48 +591,44 @@ IMPORTANT: Keep each response to 3–5 sentences. Speak always in first person a
 // ═══════════════════════════════════════════════════════════════
 // CONFIGURATION MANAGEMENT
 // ═══════════════════════════════════════════════════════════════
-// API key loaded from key.env at startup; character doc is hardcoded
+// API key loaded from key.env; character doc is hardcoded
 let API_KEY = '';
 const CHAR_DOC = DEFAULT_CHAR_DOC;
 
-// Fetch key.env, parse the first non-empty line as the API key
 async function loadKeyFromEnv() {
   const status = document.getElementById('load-status');
   const btn    = document.getElementById('begin-btn');
   try {
-    status.textContent = 'Reading key.env…';
-    const res = await fetch('key.env');
-    if (!res.ok) throw new Error(`key.env not found (HTTP ${res.status})`);
+    status.textContent = 'Loading…';
+    const res = await fetch('.env');
+    if (!res.ok) throw new Error('.env not found — make sure you are running a local server');
     const text = await res.text();
     const key  = text.split('\n').map(l => l.trim()).find(l => l.startsWith('sk-'));
-    if (!key) throw new Error('No valid key found in key.env (must start with sk-)');
+    if (!line) throw new Error('OPENAI_API_KEY= not found in .env');
+    const key = line.replace('OPENAI_API_KEY=', '').trim();
     API_KEY = key;
-    status.textContent = 'Key loaded. Ready to begin.';
-    btn.style.display = 'block';
+    status.textContent = '✿  Ready to begin  ✿';
+    btn.style.display = 'inline-block';
   } catch (err) {
-    status.style.color = '#f08080';
-    status.textContent = 'Error: ' + err.message;
+    status.style.color = '#d94f6b';
+    status.textContent = '✗ ' + err.message;
   }
 }
 
 function beginSession() {
   document.getElementById('config-screen').style.display = 'none';
-  document.getElementById('main-app').style.display = 'grid';
+  document.getElementById('main-app').style.display = 'block';
   initApp();
 }
 
 function openSettings() {
   document.getElementById('config-screen').style.display = 'flex';
   document.getElementById('main-app').style.display = 'none';
-  // Re-show begin button in case they return mid-session
-  document.getElementById('begin-btn').style.display = 'block';
-  document.getElementById('load-status').textContent = 'Key loaded. Ready to begin.';
+  document.getElementById('begin-btn').style.display = 'inline-block';
+  document.getElementById('load-status').textContent = '✿  Ready to begin  ✿';
 }
 
-// Auto-load key on page load
-document.addEventListener('DOMContentLoaded', () => {
-  loadKeyFromEnv();
-});
+document.addEventListener('DOMContentLoaded', () => { loadKeyFromEnv(); });
 
 // ═══════════════════════════════════════════════════════════════
 // STATE MACHINE
@@ -857,22 +843,7 @@ function applyMoodDelta(imageName) {
   renderMood();
 }
 
-function renderMood() {
-  const track = document.getElementById('mood-track');
-  track.innerHTML = '';
-  for (let i = 1; i <= 7; i++) {
-    const pip = document.createElement('div');
-    pip.className = 'mood-pip';
-    if (i <= S.mood) {
-      const z = i <= 2 ? 'sad' : i >= 6 ? 'happy' : 'normal';
-      pip.classList.add('filled-' + z);
-      if (i === S.mood) pip.classList.add('active');
-    }
-    track.appendChild(pip);
-  }
-  document.getElementById('mood-tone-label').textContent =
-    S.tone.charAt(0).toUpperCase() + S.tone.slice(1);
-}
+function renderMood() { /* mood display removed */ }
 
 // ═══════════════════════════════════════════════════════════════
 // IMAGE SYSTEM
@@ -919,60 +890,6 @@ function crossfade(imgName) {
 // ═══════════════════════════════════════════════════════════════
 let typewriterTimer = null;
 
-function addMessage(role, html) {
-  if (role === 'user') {
-    // Flash user text briefly in the dialogue box, then switch to input
-    const np = document.getElementById('nameplate');
-    const dt = document.getElementById('vn-dialogue-text');
-    np.textContent = 'You';
-    np.classList.add('user-name');
-    dt.innerHTML = html;
-    showInputWrap(false);
-    showDialogueBox(true);
-    setTimeout(() => {
-      // Darwin will respond — handled by handleTurn
-    }, 200);
-    return;
-  }
-  // Darwin speaking: typewriter effect
-  showDialogueBox(true);
-  showInputWrap(false);
-  const np = document.getElementById('nameplate');
-  const dt = document.getElementById('vn-dialogue-text');
-  const cont = document.getElementById('vn-continue');
-  np.textContent = 'Charles Darwin';
-  np.classList.remove('user-name');
-  cont.style.display = 'none';
-  // Strip HTML tags to plain text for typewriter
-  const tmp = document.createElement('div');
-  tmp.innerHTML = html;
-  const plain = tmp.textContent || tmp.innerText || html;
-  dt.textContent = '';
-  if (typewriterTimer) clearInterval(typewriterTimer);
-  let i = 0;
-  const cursor = document.createElement('span');
-  cursor.className = 'vn-cursor';
-  dt.appendChild(cursor);
-  typewriterTimer = setInterval(() => {
-    if (i < plain.length) {
-      cursor.before(plain[i]);
-      i++;
-      // Auto-scroll text area
-      const ta = dt.closest('.vn-text-area');
-      if (ta) ta.scrollTop = ta.scrollHeight;
-    } else {
-      clearInterval(typewriterTimer);
-      cursor.remove();
-      cont.style.display = 'block';
-      // After Darwin finishes, show the input box
-      setTimeout(() => {
-        showInputWrap(true);
-        document.getElementById('chat-input').focus();
-      }, 300);
-    }
-  }, 22);
-}
-
 function showDialogueBox(show) {
   document.getElementById('darwin-box').style.display = show ? 'block' : 'none';
 }
@@ -981,22 +898,86 @@ function showInputWrap(show) {
   document.getElementById('player-input-wrap').style.display = show ? 'flex' : 'none';
 }
 
+function addMessage(role, html) {
+  if (role === 'user') {
+    // Show user text briefly then handleTurn takes over
+    const np = document.getElementById('nameplate');
+    const dt = document.getElementById('vn-dialogue-text');
+    const cont = document.getElementById('vn-continue');
+    np.textContent = 'You';
+    np.className = 'vn-nameplate user-name';
+    dt.textContent = html;
+    cont.style.display = 'none';
+    showInputWrap(false);
+    showDialogueBox(true);
+    return;
+  }
+
+  // Darwin speaking — typewriter
+  showDialogueBox(true);
+  showInputWrap(false);
+
+  const np   = document.getElementById('nameplate');
+  const dt   = document.getElementById('vn-dialogue-text');
+  const cont = document.getElementById('vn-continue');
+  const thk  = document.getElementById('thinking-box');
+
+  np.textContent = 'Charles Darwin';
+  np.className = 'vn-nameplate';
+  thk.style.display = 'none';
+  cont.style.display = 'none';
+  dt.style.display = 'block';
+
+  // Strip tags
+  const tmp = document.createElement('div');
+  tmp.innerHTML = html;
+  const plain = tmp.textContent || tmp.innerText || html;
+
+  dt.textContent = '';
+  if (typewriterTimer) clearInterval(typewriterTimer);
+
+  let i = 0;
+  const cursor = document.createElement('span');
+  cursor.className = 'vn-cursor';
+  dt.appendChild(cursor);
+
+  typewriterTimer = setInterval(() => {
+    if (i < plain.length) {
+      cursor.insertAdjacentText('beforebegin', plain[i]);
+      i++;
+      const ta = dt.closest('.vn-text-scroll');
+      if (ta) ta.scrollTop = ta.scrollHeight;
+    } else {
+      clearInterval(typewriterTimer);
+      cursor.remove();
+      cont.style.display = 'block';
+      setTimeout(() => {
+        showInputWrap(true);
+        document.getElementById('chat-input').focus();
+      }, 300);
+    }
+  }, 22);
+}
+
 function setTyping(on) {
   const thinking = document.getElementById('thinking-box');
-  const dt = document.getElementById('vn-dialogue-text');
-  const np = document.getElementById('nameplate');
+  const dt  = document.getElementById('vn-dialogue-text');
+  const np  = document.getElementById('nameplate');
   const cont = document.getElementById('vn-continue');
+
   if (on) {
     if (typewriterTimer) clearInterval(typewriterTimer);
     np.textContent = 'Charles Darwin';
-    np.classList.remove('user-name');
+    np.className = 'vn-nameplate';
     dt.textContent = '';
+    dt.style.display = 'none';
     cont.style.display = 'none';
     thinking.style.display = 'block';
     showDialogueBox(true);
     showInputWrap(false);
   } else {
     thinking.style.display = 'none';
+    dt.style.display = 'block';
   }
   document.getElementById('send-btn').disabled   = on;
   document.getElementById('chat-input').disabled = on;
@@ -1006,8 +987,6 @@ function updateStateDisplay() {
   document.getElementById('state-topic').textContent = TOPICS[S.topic].label;
   document.getElementById('state-stage').textContent = S.stage.charAt(0).toUpperCase() + S.stage.slice(1);
   document.getElementById('state-tone').textContent  = S.tone.charAt(0).toUpperCase()  + S.tone.slice(1);
-  // mood display removed
-  // header topic not needed in VN layout
 }
 
 function showError(msg) {
@@ -1019,7 +998,7 @@ function showError(msg) {
 
 function autoResize(el) {
   el.style.height = 'auto';
-  el.style.height = Math.min(el.scrollHeight, 130) + 'px';
+  el.style.height = Math.min(el.scrollHeight, 110) + 'px';
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -1247,6 +1226,5 @@ async function initApp() {
   }
 }
 </script>
-
 </body>
 </html>
