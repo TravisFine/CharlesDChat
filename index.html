@@ -603,9 +603,12 @@ async function loadKeyFromEnv() {
     const res = await fetch('config.env');
     if (!res.ok) throw new Error('config.env not found — make sure it is in the same folder as the HTML file');
     const text = await res.text();
-    const line = text.split('\n').map(l => l.trim()).find(l => l.startsWith('OPENAI_API_KEY='));
-    if (!line) throw new Error('OPENAI_API_KEY= line not found in .env');
-    const key = line.split('=')[1].trim();
+    // Normalize line endings (handles Windows \r\n and Mac \r)
+    const lines = text.replace(/\r/g, '\n').split('\n').map(l => l.trim()).filter(Boolean);
+    // Accept either  OPENAI_API_KEY=sk-...  or  just  sk-...  on its own line
+    const line = lines.find(l => l.startsWith('OPENAI_API_KEY=')) || lines.find(l => l.startsWith('sk-'));
+    if (!line) throw new Error('Could not find key in config.env — see format instructions');
+    const key = line.includes('=') ? line.split('=').slice(1).join('=').trim() : line.trim();
     if (!key || !key.startsWith('sk-')) throw new Error('Key does not look valid — should start with sk-');
     API_KEY = key;
     status.textContent = '✿  Ready to begin  ✿';
