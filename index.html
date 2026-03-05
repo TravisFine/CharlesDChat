@@ -1064,16 +1064,31 @@ function pickImage(tone) {
 function crossfade(imgName) {
   const a = document.getElementById('portrait-a');
   const b = document.getElementById('portrait-b');
-  const [front, back] = activeSlot === 'a' ? [a, b] : [b, a];
-
-  back.src = imgName + '.png';
-  back.classList.remove('fade-out');
-  setTimeout(() => {
-    front.classList.add('fade-out');
-    activeSlot = activeSlot === 'a' ? 'b' : 'a';
-  }, 50);
-
   S.image = imgName;
+  const src = imgName + '.png';
+
+  // First load — set portrait-a directly, no animation
+  if (!a.getAttribute('data-loaded')) {
+    a.src = src;
+    a.classList.remove('fade-out');
+    b.classList.add('fade-out');
+    a.setAttribute('data-loaded', 'true');
+    activeSlot = 'a';
+    a.onerror = () => console.warn('Image not found:', src, '— ensure the file is in the same folder as this HTML');
+    return;
+  }
+
+  // Subsequent loads — wait for image before crossfading
+  const [front, back] = activeSlot === 'a' ? [a, b] : [b, a];
+  back.onload = () => {
+    back.classList.remove('fade-out');
+    setTimeout(() => {
+      front.classList.add('fade-out');
+      activeSlot = activeSlot === 'a' ? 'b' : 'a';
+    }, 50);
+  };
+  back.onerror = () => console.warn('Image not found:', src, '— ensure the file is in the same folder as this HTML');
+  back.src = src;
 }
 
 // ═══════════════════════════════════════════════════════════════
