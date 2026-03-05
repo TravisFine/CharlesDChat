@@ -493,31 +493,20 @@
 <body>
 
 <!-- ══════════════════════════════════════════════════
-     CONFIG SCREEN
+     SPLASH / LOADING SCREEN
 ══════════════════════════════════════════════════ -->
 <div id="config-screen">
   <div class="config-panel">
     <div class="config-deco">✦ &nbsp; ✦ &nbsp; ✦</div>
     <h1 class="config-title">Dialogue with Darwin</h1>
-    <p class="config-subtitle">Configure your session before the inquiry begins</p>
+    <p class="config-subtitle">On the Origin of Species &amp; Other Works</p>
     <hr class="config-divider">
-
-    <div class="config-field">
-      <label class="config-label" for="api-key-input">OpenAI API Key</label>
-      <p class="config-note">Held in session memory only — never persisted or sent anywhere except OpenAI.</p>
-      <div class="key-wrapper">
-        <input type="password" id="api-key-input" class="config-input" placeholder="sk-..." autocomplete="off" />
-        <button class="toggle-key" id="toggle-key-btn" onclick="toggleKey()">Show</button>
-      </div>
-    </div>
-
-    <div class="config-field">
-      <label class="config-label" for="char-doc-input">Character Document</label>
-      <p class="config-note">Darwin's persona and behavioral rules. Becomes the system prompt.</p>
-      <textarea id="char-doc-input" class="config-textarea" spellcheck="false"></textarea>
-    </div>
-
-    <button class="config-btn" onclick="beginSession()">Begin the Inquiry</button>
+    <p class="config-note" id="load-status" style="text-align:center; font-size:1rem; min-height:1.4em;">
+      Loading…
+    </p>
+    <button class="config-btn" id="begin-btn" onclick="beginSession()" style="display:none;">
+      Begin the Inquiry
+    </button>
   </div>
 </div>
 
@@ -612,45 +601,47 @@ IMPORTANT: Keep each response to 3–5 sentences. Speak always in first person a
 // ═══════════════════════════════════════════════════════════════
 // CONFIGURATION MANAGEMENT
 // ═══════════════════════════════════════════════════════════════
-let API_KEY      = sessionStorage.getItem('darwin_key') || '';
-let CHAR_DOC     = localStorage.getItem('darwin_char') || DEFAULT_CHAR_DOC;
+// API key loaded from key.env at startup; character doc is hardcoded
+let API_KEY = '';
+const CHAR_DOC = DEFAULT_CHAR_DOC;
 
-function toggleKey() {
-  const inp = document.getElementById('api-key-input');
-  const btn = document.getElementById('toggle-key-btn');
-  if (inp.type === 'password') { inp.type = 'text';     btn.textContent = 'Hide'; }
-  else                         { inp.type = 'password'; btn.textContent = 'Show'; }
+// Fetch key.env, parse the first non-empty line as the API key
+async function loadKeyFromEnv() {
+  const status = document.getElementById('load-status');
+  const btn    = document.getElementById('begin-btn');
+  try {
+    status.textContent = 'Reading key.env…';
+    const res = await fetch('key.env');
+    if (!res.ok) throw new Error(`key.env not found (HTTP ${res.status})`);
+    const text = await res.text();
+    const key  = text.split('\n').map(l => l.trim()).find(l => l.startsWith('sk-'));
+    if (!key) throw new Error('No valid key found in key.env (must start with sk-)');
+    API_KEY = key;
+    status.textContent = 'Key loaded. Ready to begin.';
+    btn.style.display = 'block';
+  } catch (err) {
+    status.style.color = '#f08080';
+    status.textContent = 'Error: ' + err.message;
+  }
 }
 
 function beginSession() {
-  const key = document.getElementById('api-key-input').value.trim();
-  const doc = document.getElementById('char-doc-input').value.trim();
-  if (!key) { showError('Please enter your OpenAI API key.'); return; }
-
-  API_KEY  = key;
-  CHAR_DOC = doc || DEFAULT_CHAR_DOC;
-
-  sessionStorage.setItem('darwin_key',  API_KEY);
-  localStorage.setItem('darwin_char', CHAR_DOC);
-
   document.getElementById('config-screen').style.display = 'none';
-  const app = document.getElementById('main-app');
-  app.style.display = 'grid';
-
+  document.getElementById('main-app').style.display = 'grid';
   initApp();
 }
 
 function openSettings() {
-  document.getElementById('api-key-input').value  = '';
-  document.getElementById('char-doc-input').value = CHAR_DOC;
   document.getElementById('config-screen').style.display = 'flex';
   document.getElementById('main-app').style.display = 'none';
+  // Re-show begin button in case they return mid-session
+  document.getElementById('begin-btn').style.display = 'block';
+  document.getElementById('load-status').textContent = 'Key loaded. Ready to begin.';
 }
 
-// Pre-fill on load
+// Auto-load key on page load
 document.addEventListener('DOMContentLoaded', () => {
-  document.getElementById('char-doc-input').value = CHAR_DOC;
-  if (API_KEY) document.getElementById('api-key-input').value = API_KEY;
+  loadKeyFromEnv();
 });
 
 // ═══════════════════════════════════════════════════════════════
