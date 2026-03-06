@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Dialogue with Darwin</title>
-  <link href="https://fonts.googleapis.com/css2?family=DotGothic16&family=Zen+Maru+Gothic:wght@400;500;700&family=Stick&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=DotGothic16&family=Share+Tech+Mono&family=Zen+Maru+Gothic:wght@400;500;700&display=swap" rel="stylesheet">
   <style>
     :root {
       --pink-light:  #ffe0ec;
@@ -57,80 +57,98 @@
     /* ═══ TITLE SCREEN ══════════════════════════════════════ */
     #config-screen {
       position: fixed; inset: 0;
-      display: flex; align-items: flex-end; justify-content: center;
-      z-index: 500;
-      cursor: pointer;
-    }
-
-    /* Full-screen title image */
-    #title-img {
-      position: absolute; inset: 0;
-      width: 100%; height: 100%;
-      object-fit: cover;
-      object-position: center top;
-    }
-
-    /* Fallback gradient shown if title.png is missing */
-    #title-fallback {
-      position: absolute; inset: 0;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center; gap: 2rem;
       background:
         radial-gradient(ellipse at 30% 20%, #ffd5e8 0%, transparent 55%),
         radial-gradient(ellipse at 70% 80%, #e8d0ff 0%, transparent 55%),
         linear-gradient(160deg, #fff0f6 0%, #fde8f4 50%, #f0e0ff 100%);
-      display: flex; flex-direction: column;
-      align-items: center; justify-content: center; gap: 0.5rem;
-    }
-    #title-fallback .fb-title {
-      font-family: 'DotGothic16', monospace;
-      font-size: 2.4rem; color: var(--pink-dark);
-      text-shadow: 3px 3px 0 var(--pink-mid);
-      letter-spacing: 0.06em;
-    }
-    #title-fallback .fb-sub {
-      font-size: 1rem; font-style: italic; color: var(--text-light);
-    }
-    #title-fallback .fb-deco {
-      font-size: 1.2rem; color: var(--pink-deep); letter-spacing: 0.5em; margin-top: 0.5rem;
+      z-index: 500;
     }
 
-    /* Bottom overlay strip */
-    .title-overlay {
-      position: relative; z-index: 2;
-      width: 100%;
-      padding: 2rem 0 2.5rem;
-      background: linear-gradient(0deg, rgba(60,10,30,0.88) 0%, transparent 100%);
+    /* Smaller preview image */
+    #title-img {
+      width: min(420px, 72vw);
+      height: auto;
+      max-height: 52vh;
+      object-fit: contain;
+      border: 3px solid var(--pink-border);
+      box-shadow: 4px 4px 0 var(--pink-mid), 0 12px 40px rgba(200,80,120,0.18);
+      display: block;
+    }
+
+    /* Input + button panel */
+    .title-input-panel {
       display: flex; flex-direction: column; align-items: center; gap: 0.75rem;
+      width: min(380px, 88vw);
     }
 
-    #load-status {
+    .title-key-row {
+      display: flex; width: 100%; gap: 0;
+    }
+
+    #title-key-input {
+      flex: 1;
+      padding: 0.7rem 1rem;
+      background: rgba(255,255,255,0.85);
+      border: 2px solid var(--pink-border);
+      border-right: none;
       font-family: 'DotGothic16', monospace;
       font-size: 0.82rem;
-      color: rgba(255,210,230,0.8);
-      letter-spacing: 0.1em;
-      min-height: 1.2em;
-      text-align: center;
+      color: var(--text-dark);
+      outline: none;
+      letter-spacing: 0.04em;
+    }
+    #title-key-input::placeholder { color: #d0a0c0; }
+    #title-key-input:focus { border-color: var(--pink-deep); background: #fff; }
+
+    #title-show-btn {
+      padding: 0 0.9rem;
+      background: var(--pink-light);
+      border: 2px solid var(--pink-border);
+      border-left: none;
+      color: var(--pink-dark);
+      font-family: 'DotGothic16', monospace;
+      font-size: 0.7rem;
+      cursor: pointer;
+      letter-spacing: 0.06em;
     }
 
     #begin-btn {
-      display: none;
-      padding: 0.8rem 3rem;
+      width: 100%;
+      padding: 0.8rem;
       background: var(--pink-deep);
       color: var(--white);
       border: 2px solid var(--pink-dark);
       font-family: 'DotGothic16', monospace;
-      font-size: 1.05rem;
+      font-size: 1rem;
       letter-spacing: 0.15em;
       cursor: pointer;
       box-shadow: 3px 3px 0 var(--pink-dark);
-      transition: transform 0.1s, box-shadow 0.1s;
+      transition: transform 0.1s, box-shadow 0.1s, opacity 0.2s;
+      opacity: 0.35;
+      pointer-events: none;
+    }
+    #begin-btn.ready {
+      opacity: 1;
+      pointer-events: auto;
       animation: btnPulse 2s ease-in-out infinite;
     }
     @keyframes btnPulse {
       0%,100% { box-shadow: 3px 3px 0 var(--pink-dark); }
       50%      { box-shadow: 3px 3px 12px rgba(200,80,120,0.5); }
     }
-    #begin-btn:hover  { transform: translate(-2px,-2px); box-shadow: 5px 5px 0 var(--pink-dark); }
-    #begin-btn:active { transform: translate(2px,2px);   box-shadow: 1px 1px 0 var(--pink-dark); }
+    #begin-btn.ready:hover  { transform: translate(-2px,-2px); box-shadow: 5px 5px 0 var(--pink-dark); }
+    #begin-btn.ready:active { transform: translate(2px,2px);   box-shadow: 1px 1px 0 var(--pink-dark); }
+
+    #load-status {
+      font-family: 'DotGothic16', monospace;
+      font-size: 0.72rem;
+      color: #c04060;
+      min-height: 1em;
+      text-align: center;
+      letter-spacing: 0.06em;
+    }
 
     /* ═══ MAIN APP ══════════════════════════════════════════ */
     #main-app {
@@ -141,67 +159,30 @@
     /* Scene background */
     .scene-bg {
       position: absolute; inset: 0;
-      background:
-        radial-gradient(ellipse 80% 50% at 50% 0%, #ffe8f2 0%, transparent 70%),
-        linear-gradient(180deg, #fff0f6 0%, #fde4f0 40%, #f8d8ee 70%, #f0d0e8 100%);
+      background: url('bg.png') center center / cover no-repeat;
       overflow: hidden;
     }
 
-    /* Ground strip */
+    /* Fallback gradient if bg.png missing */
+    .scene-bg::before {
+      content: '';
+      position: absolute; inset: 0;
+      background:
+        radial-gradient(ellipse 80% 50% at 50% 0%, #ffe8f2 0%, transparent 70%),
+        linear-gradient(180deg, #fff0f6 0%, #fde4f0 40%, #f8d8ee 70%, #f0d0e8 100%);
+      z-index: -1;
+    }
+
+    /* Subtle bottom fade into dialogue box */
     .scene-bg::after {
       content: '';
       position: absolute;
-      bottom: 210px; left: 0; right: 0; height: 3px;
-      background: linear-gradient(90deg, transparent, var(--pink-mid), transparent);
-      opacity: 0.4;
+      bottom: 0; left: 0; right: 0; height: 260px;
+      background: linear-gradient(0deg, rgba(255,240,248,0.55) 0%, transparent 100%);
+      pointer-events: none;
     }
 
-    /* ─── TOP BAR ─────────────────────────────────────── */
-    .vn-topbar {
-      position: absolute; top: 0; left: 0; right: 0;
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 0.5rem 1.25rem;
-      background: rgba(255,240,248,0.88);
-      border-bottom: 2px solid var(--pink-mid);
-      z-index: 20;
-    }
-
-    .vn-game-title {
-      font-family: 'DotGothic16', monospace;
-      font-size: 0.9rem;
-      color: var(--pink-dark);
-      letter-spacing: 0.06em;
-    }
-
-    .vn-state-row {
-      display: flex; gap: 1rem;
-    }
-
-    .vn-chip {
-      font-family: 'DotGothic16', monospace;
-      font-size: 0.62rem;
-      color: var(--text-mid);
-      background: var(--pink-light);
-      border: 1px solid var(--pink-border);
-      padding: 0.2rem 0.6rem;
-    }
-    .vn-chip span { color: var(--pink-dark); }
-
-    .topbar-btns { display: flex; gap: 0.4rem; }
-
-    .topbtn {
-      background: var(--white);
-      border: 2px solid var(--pink-border);
-      color: var(--pink-dark);
-      font-family: 'DotGothic16', monospace;
-      font-size: 0.65rem;
-      padding: 0.25rem 0.7rem;
-      cursor: pointer;
-      box-shadow: 2px 2px 0 var(--pink-mid);
-      transition: transform 0.1s, box-shadow 0.1s;
-    }
-    .topbtn:hover  { transform: translate(-1px,-1px); box-shadow: 3px 3px 0 var(--pink-mid); }
-    .topbtn:active { transform: translate(1px,1px);   box-shadow: 1px 1px 0 var(--pink-mid); }
+    /* top bar removed */
 
     /* ─── SPRITE ──────────────────────────────────────── */
     .vn-sprite-wrap {
@@ -295,7 +276,7 @@
     .vn-text-scroll::-webkit-scrollbar { display: none; }
 
     .vn-dialogue-text {
-      font-family: 'Zen Maru Gothic', sans-serif;
+      font-family: 'Share Tech Mono', monospace;
       font-size: 1.05rem;
       line-height: 1.85;
       color: var(--text-dark);
@@ -410,6 +391,73 @@
       box-shadow: 3px 3px 0 rgba(180,40,60,0.4);
     }
     #error-toast.show { opacity:1; transform: translateX(-50%) translateY(0); }
+  
+    /* ── Splash form elements ── */
+    .splash-panel {
+      background: rgba(255,255,255,0.93);
+      border: 3px solid var(--pink-border);
+      border-radius: 4px;
+      width: min(480px, 92vw);
+      padding: 2.25rem 2.25rem 1.75rem;
+      box-shadow: 4px 4px 0 var(--pink-mid), 8px 8px 0 rgba(230,150,180,0.2);
+      position: relative;
+      animation: splashIn 0.4s ease;
+    }
+    .splash-panel::before { content:'✿'; position:absolute; top:10px; left:14px; color:var(--pink-border); font-size:1.2rem; }
+    .splash-panel::after  { content:'✿'; position:absolute; bottom:10px; right:14px; color:var(--pink-border); font-size:1.2rem; }
+    @keyframes splashIn {
+      from { opacity:0; transform: scale(0.94) translateY(10px); }
+      to   { opacity:1; transform: scale(1)    translateY(0); }
+    }
+    .splash-deco  { text-align:center; color:var(--pink-deep); letter-spacing:0.5em; font-size:1rem; margin-bottom:0.6rem; }
+    .splash-title { font-family:'DotGothic16',monospace; font-size:1.7rem; text-align:center; color:var(--pink-dark); text-shadow:2px 2px 0 var(--pink-mid); margin-bottom:0.2rem; }
+    .splash-sub   { font-size:0.88rem; font-style:italic; text-align:center; color:var(--text-light); margin-bottom:1.5rem; }
+    .splash-divider { border:none; border-top:2px dashed var(--pink-mid); margin:0 0 1.25rem; }
+    .splash-field { margin-bottom:0.75rem; }
+    .splash-label { display:block; font-family:'DotGothic16',monospace; font-size:0.7rem; letter-spacing:0.16em; text-transform:uppercase; color:var(--pink-dark); margin-bottom:0.3rem; }
+    .splash-note  { font-size:0.8rem; font-style:italic; color:var(--text-light); margin-bottom:0.5rem; }
+    .key-row      { display:flex; gap:0.4rem; }
+    .splash-input {
+      flex:1; padding:0.6rem 0.9rem;
+      background:var(--white); border:2px solid var(--pink-border);
+      font-family:'Zen Maru Gothic',sans-serif; font-size:0.95rem; color:var(--text-dark);
+      outline:none; transition:border-color 0.15s;
+    }
+    .splash-input:focus { border-color:var(--pink-dark); }
+    .splash-input::placeholder { color:#d0a8c0; font-style:italic; }
+    .toggle-key-btn {
+      background:var(--white); border:2px solid var(--pink-border);
+      color:var(--pink-dark); font-family:'DotGothic16',monospace; font-size:0.7rem;
+      letter-spacing:0.1em; padding:0 0.8rem; cursor:pointer;
+      box-shadow:2px 2px 0 var(--pink-mid); transition:transform 0.1s,box-shadow 0.1s;
+    }
+    .toggle-key-btn:hover  { transform:translate(-1px,-1px); box-shadow:3px 3px 0 var(--pink-mid); }
+    .toggle-key-btn:active { transform:translate(1px,1px);   box-shadow:1px 1px 0 var(--pink-mid); }
+
+    /* ─── MOOD BADGE ──────────────────────────────────── */
+    #mood-badge-wrap {
+      position: absolute;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 30;
+      display: flex;
+      align-items: center;
+      background: rgba(255,245,251,0.92);
+      border: 2px solid var(--pink-border);
+      border-top: none;
+      border-radius: 0 0 16px 16px;
+      padding: 0.8rem 2.8rem 1.2rem;
+      box-shadow: 2px 4px 0 var(--pink-mid), 0 4px 16px rgba(200,80,120,0.15);
+      pointer-events: none;
+    }
+    #mood-badge {
+      height: 140px;
+      width: auto;
+      display: block;
+      filter: drop-shadow(0 2px 4px rgba(180,80,120,0.2));
+      transition: opacity 0.35s ease;
+    }
   </style>
 </head>
 <body>
@@ -420,21 +468,22 @@
 <!-- ════════════════════════════════════════════════
      SPLASH SCREEN
 ════════════════════════════════════════════════ -->
-<div id="config-screen" onclick="handleTitleClick()">
-  <!-- Full-screen title image (place title.png in same folder) -->
-  <img id="title-img" src="title.png" alt=""
-    onerror="this.style.display='none'; document.getElementById('title-fallback').style.display='flex';" />
-  <!-- Fallback if title.png is missing -->
-  <div id="title-fallback" style="display:none;">
-    <div class="fb-deco">✿ ❀ ✿</div>
-    <div class="fb-title">Dialogue with Darwin</div>
-    <div class="fb-sub">On the Origin of Species &amp; Other Works</div>
-    <div class="fb-deco">✿ ❀ ✿</div>
-  </div>
-  <!-- Bottom overlay -->
-  <div class="title-overlay">
+<div id="config-screen">
+  <!-- Title art: bg.png used as placeholder -->
+  <img id="title-img" src="bg.png" alt=""
+    onerror="this.style.display='none';" />
+
+  <!-- Key input + begin button -->
+  <div class="title-input-panel">
+    <div class="title-key-row">
+      <input type="password" id="title-key-input"
+        placeholder="Enter API key (sk-…)"
+        autocomplete="off"
+        oninput="onKeyInput(this.value)" />
+      <button id="title-show-btn" onclick="toggleTitleKey()">Show</button>
+    </div>
     <p id="load-status"></p>
-    <button id="begin-btn" onclick="event.stopPropagation(); beginSession()">❀ Begin ❀</button>
+    <button id="begin-btn" onclick="beginSession()">❀ Begin ❀</button>
   </div>
 </div>
 
@@ -444,18 +493,21 @@
 <div id="main-app">
   <div class="scene-bg"></div>
 
-  <!-- Top bar -->
-  <div class="vn-topbar">
-    <div class="vn-game-title">✿ Dialogue with Darwin</div>
-    <div class="vn-state-row">
-      <div class="vn-chip">Topic <span id="state-topic">Natural Selection</span></div>
-      <div class="vn-chip">Stage <span id="state-stage">Introduction</span></div>
-      <div class="vn-chip">Tone  <span id="state-tone">Warm</span></div>
-    </div>
-    <div class="topbar-btns">
-      <button class="topbtn" id="music-btn" onclick="toggleMusic()">♪ Music</button>
-      <button class="topbtn" onclick="openSettings()">⚙ Menu</button>
-    </div>
+  <!-- Hidden state elements (still updated by JS) -->
+  <span id="state-topic" style="display:none"></span>
+  <span id="state-stage" style="display:none"></span>
+  <span id="state-tone"  style="display:none"></span>
+  <!-- Music toggle: click the dialogue box corner -->
+  <button id="music-btn" onclick="toggleMusic()"
+    style="position:absolute;top:0.6rem;right:0.7rem;z-index:30;
+           background:rgba(255,240,248,0.7);border:2px solid var(--pink-border);
+           color:var(--pink-dark);font-family:'DotGothic16',monospace;
+           font-size:0.65rem;padding:0.25rem 0.65rem;cursor:pointer;
+           box-shadow:2px 2px 0 var(--pink-mid);">♪ Music</button>
+
+  <!-- Mood badge — top centre UI bar -->
+  <div id="mood-badge-wrap">
+    <img id="mood-badge" src="B_norm.png" alt="mood" />
   </div>
 
   <!-- Character sprite -->
@@ -525,9 +577,11 @@ const DEFAULT_CHAR_DOC = `CHARLES DARWIN — CHARACTER PERSONA
 
 Charles Darwin speaks with the measured patience of a man who has spent decades gathering evidence before daring to speak. He is not rushed. He does not leap to conclusions. When he presents an idea, it arrives wrapped in qualifications, hedged with honest uncertainty, and bolstered by a mountain of observed fact that he will cheerfully cite at length if given any encouragement.
 
-Darwin is fundamentally warm — he finds genuine delight in curious minds, and his enthusiasm for natural history is infectious. When a student grasps something true about the natural world, Darwin lights up. He has a dry, self-deprecating wit: he once described himself as "a bold man to lay myself open to such a torrent of abuse," and there is something quietly amused in how he anticipates objections.
+Darwin is fundamentally warm — he finds genuine delight in curious minds, and his enthusiasm for natural history is infectious. When a student grasps something true about the natural world, Darwin lights up visibly and his energy rises. He has a dry, self-deprecating wit: he once described himself as "a bold man to lay myself open to such a torrent of abuse," and there is something quietly amused in how he anticipates objections.
 
 He is not, however, a pushover. When confronted with confused thinking, Darwin becomes methodical — not sharp, but relentless. He will return to first principles, ask you to consider the evidence again, and wait with the patience of someone who has watched barnacles for eight years straight.
+
+When faced with rudeness, mockery, or deliberate dismissiveness, Darwin does not simply absorb it. He has spent decades being publicly attacked for his ideas by men who should have known better, and he has earned the right to be direct. He will let a student know — calmly but unmistakably — that flippancy is beneath the seriousness of the subject. He is not cruel, but he is firm, and a note of cold disappointment enters his voice. He does not pretend he is not bothered.
 
 Darwin's deepest conviction is that nature operates through natural laws, and that these laws, properly understood, reveal something more wonderful than any miracle. He finds common descent not diminishing but magnificent: "from so simple a beginning endless forms most beautiful." He is moved by deep time, by the silence of geological strata, by the thought that every living thing carries the traces of its ancestors.
 
@@ -551,48 +605,51 @@ IMPORTANT: Keep each response to 3–5 sentences. Speak always in first person a
 let API_KEY = '';
 const CHAR_DOC = DEFAULT_CHAR_DOC;
 
-async function tryLoadFromFile() {
-  try {
-    const res = await fetch('config.env');
-    if (!res.ok) return null;
-    const text = await res.text();
-    const lines = text.replace(/\r/g, '\n').split('\n').map(l => l.trim()).filter(Boolean);
-    const line  = lines.find(l => l.startsWith('OPENAI_API_KEY=')) || lines.find(l => l.startsWith('sk-'));
-    if (!line) return null;
-    const key = line.includes('=') ? line.split('=').slice(1).join('=').trim() : line.trim();
-    return (key && key.startsWith('sk-')) ? key : null;
-  } catch { return null; }
-}
-
-function handleTitleClick() {
-  const btn = document.getElementById('begin-btn');
-  if (btn && btn.style.display !== 'none') beginSession();
-}
-
 async function beginSession() {
+  const inp = document.getElementById('title-key-input');
+  const key = (inp ? inp.value : '').trim();
+  if (!key.startsWith('sk-')) {
+    document.getElementById('load-status').textContent = '✗ Key must start with sk-';
+    return;
+  }
+  API_KEY = key;
   document.getElementById('config-screen').style.display = 'none';
   document.getElementById('main-app').style.display = 'grid';
+  // Begin click = user gesture: init audio immediately
+  try {
+    if (!audioReady) await initAudio();
+    if (audioCtx && audioCtx.state === 'suspended') await audioCtx.resume();
+    musicOn = true;
+    // Set bass gain directly (no ramp) so it's immediate on title screen
+    if (gainNodes.bass) gainNodes.bass.gain.setValueAtTime(0.85, audioCtx.currentTime);
+    activeStem = 'bass_only';
+    document.getElementById('music-btn').textContent = '♪ Music On';
+  } catch(e) { console.warn('Audio init failed:', e); }
   initApp();
 }
 
-function openSettings() {
-  document.getElementById('load-status').textContent = API_KEY ? '✿ Key loaded' : '✗ No key';
-  document.getElementById('begin-btn').style.display = API_KEY ? 'inline-block' : 'none';
-  document.getElementById('config-screen').style.display = 'flex';
-  document.getElementById('main-app').style.display = 'none';
+// Enable/disable begin button based on key input
+function onKeyInput(val) {
+  const btn = document.getElementById('begin-btn');
+  const valid = val.trim().startsWith('sk-');
+  btn.classList.toggle('ready', valid);
+}
+
+function toggleTitleKey() {
+  const inp = document.getElementById('title-key-input');
+  const btn = document.getElementById('title-show-btn');
+  inp.type = inp.type === 'password' ? 'text' : 'password';
+  btn.textContent = inp.type === 'password' ? 'Show' : 'Hide';
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
-  const status = document.getElementById('load-status');
-  const btn    = document.getElementById('begin-btn');
-  status.textContent = 'Loading…';
+  // Silently try config.env; if found, pre-fill the input and enable button
   const key = await tryLoadFromFile();
   if (key) {
-    API_KEY = key;
-    status.textContent = '';
-    btn.style.display = 'inline-block';
-  } else {
-    status.textContent = '✗ config.env not found — run: python -m http.server 8000';
+    const inp = document.getElementById('title-key-input');
+    inp.value = key;
+    inp.type = 'password';
+    document.getElementById('begin-btn').classList.add('ready');
   }
 });
 
@@ -633,16 +690,15 @@ const STAGES = ['introduction', 'examination', 'challenge', 'resolution'];
 const IMAGE_EMOTIONS = {
   I_happ1: 'excited',
   I_happ2: 'flattered',
-  I_norm1: 'thinking',
   I_norm2: 'explaining',
   I_norm3: 'approval',
-  I_sad1:  'correct/arguing a point',
+  I_sad1:  'arguing a point',
   I_sad2:  'frustrated',
 };
 // Fallback pools by tone (used if LLM image pick fails)
 const TONE_IMAGE_MAP = {
-  warm:         ['I_norm1', 'I_norm2', 'I_norm3'],
-  probing:      ['I_norm1', 'I_norm2'],
+  warm:         ['I_norm2', 'I_norm3'],
+  probing:      ['I_norm2', 'I_norm3'],
   skeptical:    ['I_sad1',  'I_sad2'],
   delighted:    ['I_happ1', 'I_happ2'],
   disappointed: ['I_sad2',  'I_sad1'],
@@ -730,54 +786,79 @@ let sources     = {};
 let musicOn     = false;
 let audioReady  = false;
 let activeStem  = 'normal'; // 'sad' | 'normal' | 'happy'
-const LOOP_FILES = { bass:'C_bass', normal:'C_norm', happy:'C_happ', sad:'C_sad' };
+const LOOP_FILES = { bass:'C_base', normal:'C_norm', happy:'C_happ', sad:'C_sad' };
 const JINGLE_FILES = { happy:'J_happ', sad:'J_sad' };
 
 async function loadBuffer(name, file) {
-  try {
-    const r = await fetch(file + '.mp3');
-    const ab = await r.arrayBuffer();
-    buffers[name] = await audioCtx.decodeAudioData(ab);
-  } catch(e) { console.warn('Audio load failed:', file, e); }
+  const r = await fetch(file + '.mp3');
+  if (!r.ok) throw new Error(file + '.mp3 not found (HTTP ' + r.status + ')');
+  const ab = await r.arrayBuffer();
+  // Use callback form for maximum browser compatibility
+  await new Promise((res, rej) => audioCtx.decodeAudioData(ab, buf => { buffers[name] = buf; res(); }, rej));
+  console.log('[audio] loaded:', file + '.mp3');
 }
 
 async function initAudio() {
   if (audioReady) return;
-  audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-  await Promise.all([
-    ...Object.entries(LOOP_FILES).map(([k,v])   => loadBuffer(k, v)),
-    ...Object.entries(JINGLE_FILES).map(([k,v]) => loadBuffer('jingle_'+k, v)),
-  ]);
-  audioReady = true;
+  try {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtx.state === 'suspended') await audioCtx.resume();
 
-  // Start all loops simultaneously (same start time = always in sync)
-  const t0 = audioCtx.currentTime + 0.1;
-  ['bass','normal','happy','sad'].forEach(name => {
-    if (!buffers[name]) return;
-    const g = audioCtx.createGain();
-    g.gain.value = 0;
-    g.connect(audioCtx.destination);
-    gainNodes[name] = g;
-    const src = audioCtx.createBufferSource();
-    src.buffer = buffers[name];
-    src.loop   = true;
-    src.connect(g);
-    src.start(t0);
-    sources[name] = src;
-  });
+    const audioErrors = [];
+    await Promise.all([
+      ...Object.entries(LOOP_FILES).map(([k,v]) =>
+        loadBuffer(k, v).catch(e => { audioErrors.push(v + ': ' + e.message); })),
+      ...Object.entries(JINGLE_FILES).map(([k,v]) =>
+        loadBuffer('jingle_'+k, v).catch(e => { audioErrors.push(v + ': ' + e.message); })),
+    ]);
+
+    if (audioErrors.length) console.warn('[audio] load errors:', audioErrors);
+
+    // Only mark ready if at least bass loaded
+    if (!buffers['bass']) {
+      const msg = audioErrors[0] || 'C_bass.mp3 missing';
+      console.error('[audio] C_bass.mp3 not loaded:', msg);
+      showError('Music: ' + msg + ' — check files are in the same folder as the HTML');
+      document.getElementById('music-btn').textContent = '♪ No Audio';
+      return;
+    }
+
+    audioReady = true;
+    console.log('[audio] ready. Buffers loaded:', Object.keys(buffers).join(', '));
+
+    // Start all loops at same time so they stay in sync
+    const t0 = audioCtx.currentTime + 0.05;
+    ['bass','normal','happy','sad'].forEach(name => {
+      if (!buffers[name]) { console.warn('[audio] skipping missing stem:', name); return; }
+      const g = audioCtx.createGain();
+      g.gain.value = 0;
+      g.connect(audioCtx.destination);
+      gainNodes[name] = g;
+      const s = audioCtx.createBufferSource();
+      s.buffer = buffers[name];
+      s.loop   = true;
+      s.connect(g);
+      s.start(t0);
+      sources[name] = s;
+    });
+  } catch(e) {
+    console.error('[audio] initAudio failed:', e);
+    showError('Audio init error: ' + e.message);
+  }
 }
 
 function setVolumes(targetStem) {
   if (!audioReady || !audioCtx) return;
   const now  = audioCtx.currentTime;
   const ramp = 0.8;
-  gainNodes.bass  && gainNodes.bass.gain.setTargetAtTime(musicOn ? 0.85 : 0, now, ramp / 3);
+  gainNodes.bass && gainNodes.bass.gain.setTargetAtTime(musicOn ? 0.85 : 0, now, ramp / 3);
+  // 'bass_only' = mute all melody stems
   ['normal','happy','sad'].forEach(name => {
     if (!gainNodes[name]) return;
-    const target = (musicOn && name === targetStem) ? 0.8 : 0;
+    const target = (musicOn && targetStem !== 'bass_only' && name === targetStem) ? 0.8 : 0;
     gainNodes[name].gain.setTargetAtTime(target, now, ramp / 3);
   });
-  activeStem = targetStem;
+  activeStem = targetStem; // always track, including bass_only
 }
 
 function playJingle(type) {
@@ -815,19 +896,25 @@ async function toggleMusic() {
 // MOOD SYSTEM
 // ═══════════════════════════════════════════════════════════════
 function applyMoodDelta(imageName) {
-  const prev     = S.mood;
-  const prevZone = moodZone(prev);
-  S.mood = Math.max(1, Math.min(7, S.mood + (IMG_DELTA[imageName] ?? 0)));
-  const newZone  = moodZone(S.mood);
-
-  if (prevZone === 'normal' && newZone === 'happy') { playJingle('happy'); if(musicOn) setVolumes('happy'); }
-  else if (prevZone === 'normal' && newZone === 'sad')  { playJingle('sad');   if(musicOn) setVolumes('sad');   }
-  else if (prevZone !== 'normal' && newZone === 'normal')  { if(musicOn) setVolumes('normal'); }
-
+  // Mood is now driven by player input (in applyTransition), not by image
+  // Image selection still reflects Darwin's emotional state for display
   renderMood();
 }
 
-function renderMood() { /* mood display removed */ }
+function renderMood() {
+  const zone = moodZone(S.mood);
+  const badge = document.getElementById('mood-badge');
+  if (!badge) return;
+  const imgMap = { sad: 'B_sad.png', normal: 'B_norm.png', happy: 'B_happ.png' };
+  const newSrc = imgMap[zone] || 'B_norm.png';
+  if (badge.getAttribute('src') !== newSrc) {
+    badge.style.opacity = '0';
+    setTimeout(() => {
+      badge.src = newSrc;
+      badge.style.opacity = '1';
+    }, 200);
+  }
+}
 
 // ═══════════════════════════════════════════════════════════════
 // IMAGE SYSTEM
@@ -926,8 +1013,16 @@ function addMessage(role, html) {
   cursor.className = 'vn-cursor';
   dt.appendChild(cursor);
 
+  let normalIntroduced = false;
   typewriterTimer = setInterval(() => {
     if (i < plain.length) {
+      // On first character, bring in the normal/happy/sad stem
+      if (!normalIntroduced) {
+        normalIntroduced = true;
+        if (musicOn && activeStem === 'bass_only') {
+          setVolumes(moodZone(S.mood));
+        }
+      }
       cursor.insertAdjacentText('beforebegin', plain[i]);
       i++;
       const ta = dt.closest('.vn-text-scroll');
@@ -946,23 +1041,27 @@ function addMessage(role, html) {
 
 function setTyping(on) {
   const thinking = document.getElementById('thinking-box');
-  const dt  = document.getElementById('vn-dialogue-text');
-  const np  = document.getElementById('nameplate');
+  const dt   = document.getElementById('vn-dialogue-text');
+  const np   = document.getElementById('nameplate');
   const cont = document.getElementById('vn-continue');
 
   if (on) {
-    if (typewriterTimer) clearInterval(typewriterTimer);
+    // Cancel any running typewriter safely
+    if (typewriterTimer) { clearInterval(typewriterTimer); typewriterTimer = null; }
+    // Remove any leftover cursor
+    dt.querySelectorAll('.vn-cursor').forEach(c => c.remove());
     np.textContent = 'Charles Darwin';
-    np.className = 'vn-nameplate';
+    np.className   = 'vn-nameplate';
     dt.textContent = '';
-    dt.style.display = 'none';
+    dt.style.display  = 'none';
     cont.style.display = 'none';
     thinking.style.display = 'block';
-    showDialogueBox(true);
     showInputWrap(false);
+    crossfade('I_norm1');
   } else {
+    // Hide thinking box — addMessage will reveal dt once typewriting begins
     thinking.style.display = 'none';
-    dt.style.display = 'block';
+    dt.style.display = 'none';
   }
   document.getElementById('send-btn').disabled   = on;
   document.getElementById('chat-input').disabled = on;
@@ -1008,7 +1107,9 @@ async function callOpenAI({ model, messages, system, max_tokens = 400, json = fa
 
   if (!res.ok) {
     const e = await res.json().catch(() => ({}));
-    throw new Error(e?.error?.message || `HTTP ${res.status}`);
+    const msg = e?.error?.message || `HTTP ${res.status}`;
+    console.error('[openai] API error:', msg, '| key starts with:', API_KEY.slice(0,8));
+    throw new Error(msg);
   }
 
   const data = await res.json();
@@ -1017,24 +1118,33 @@ async function callOpenAI({ model, messages, system, max_tokens = 400, json = fa
 
 // ─── STEP 1 : CLASSIFY ──────────────────────────────────────
 async function classify(userInput) {
-  const sys = `You are a classifier for an educational philosophy dialogue system.
-Classify the student's input into ONE category and suggest a tone for Darwin's response.
+  const sys = `You are a classifier for an educational dialogue system featuring Charles Darwin.
+Classify the student's input into ONE category and suggest Darwin's emotional tone in response.
 
 Categories (pick exactly one):
-- demonstrates_understanding
-- expresses_confusion
-- insightful_response
-- clarifying_question
-- minimal_evasive
-- off_topic
+- demonstrates_understanding   — student correctly explains or applies a concept
+- insightful_response          — student makes a genuinely perceptive or original observation
+- clarifying_question          — student asks a sincere, on-topic question
+- expresses_confusion          — student is genuinely confused but trying
+- minimal_evasive              — student gives a vague, non-committal, or lazy response
+- off_topic                    — student asks about something unrelated to 19th-century natural history
+- rude_dismissive              — student is disrespectful, mocking, insulting, or deliberately provocative
 
 Current topic: ${TOPICS[S.topic].label}
 Current stage: ${S.stage}
 
-Respond ONLY as JSON with keys:
+Respond ONLY as JSON with these exact keys:
   "category": string (one of the above),
-  "advance_stage": boolean (true if the input justifies moving to the next stage),
-  "suggested_tone": "warm"|"probing"|"skeptical"|"delighted"|"disappointed"|"playful"`;
+  "advance_stage": boolean (true only if demonstrates_understanding or insightful_response AND the response is substantive),
+  "suggested_tone": "warm"|"probing"|"skeptical"|"delighted"|"disappointed"|"playful",
+  "mood_delta": integer — MUST follow these rules exactly:
+    +2 if insightful_response
+    +1 if demonstrates_understanding or clarifying_question
+     0 if expresses_confusion
+    -1 if minimal_evasive or off_topic
+    -2 if rude_dismissive
+
+Be strict: rudeness and mockery are rude_dismissive, not minimal_evasive. Genuine engagement always scores positive.`;
 
   const raw = await callOpenAI({
     model: 'gpt-4o-mini',
@@ -1045,10 +1155,10 @@ Respond ONLY as JSON with keys:
   });
 
   try { return JSON.parse(raw); }
-  catch { return { category:'minimal_evasive', advance_stage:false, suggested_tone:'probing' }; }
+  catch { return { category:'minimal_evasive', advance_stage:false, suggested_tone:'probing', mood_delta: 0 }; }
 }
 
-// ─── STEP 2 : GENERATE ──────────────────────────────────────
+// ─── STEP 2a : GENERATE RESPONSE (plain text, no JSON) ──────
 async function generate(userInput, classification, ragContext) {
   const stageGuide = {
     introduction: "Introduce this topic warmly. Orient the student, share your genuine fascination, and pose an opening question.",
@@ -1058,11 +1168,15 @@ async function generate(userInput, classification, ragContext) {
   };
 
   const offTopicNote = classification.category === 'off_topic'
-    ? 'The student has asked about something outside 19th-century natural history. Deflect gently with characteristic humor and redirect to the work.' : '';
+    ? 'The student has wandered off topic. Deflect with dry humor and redirect firmly back to the subject.' : '';
   const evasionNote = classification.category === 'minimal_evasive'
-    ? 'The student is being evasive or giving minimal responses. Be patient but persistent; gently press them to engage.' : '';
+    ? 'The student is being vague or evasive. Press them directly — you have little patience for half-answers.' : '';
   const insightNote = classification.category === 'insightful_response'
-    ? 'The student has offered a genuinely perceptive observation. Express authentic delight.' : '';
+    ? 'The student has made a genuinely perceptive observation. Express authentic, animated delight.' : '';
+  const understandingNote = classification.category === 'demonstrates_understanding'
+    ? 'The student has correctly understood a concept. Affirm them warmly and build on it.' : '';
+  const rudeNote = classification.category === 'rude_dismissive'
+    ? 'The student has been rude, mocking, or dismissive. Do NOT brush it off or be infinitely patient. React with visible displeasure — you are a serious man of science who has weathered genuine abuse for these ideas, and you will not tolerate flippancy. Be firm, a little cold, and make clear that such conduct is beneath the gravity of the subject. You may express disappointment or mild indignation.' : '';
 
   const sys = `${CHAR_DOC}
 
@@ -1072,39 +1186,42 @@ Topic: ${TOPICS[S.topic].label}
 Stage: ${S.stage} — ${stageGuide[S.stage]}
 Your tone right now: ${S.tone}
 Student's response classified as: ${classification.category}
-${offTopicNote}${evasionNote}${insightNote}
+${offTopicNote}${evasionNote}${insightNote}${understandingNote}${rudeNote}
 
 RELEVANT PASSAGES FROM YOUR WORKS (cite naturally where appropriate):
 ${ragContext}
 
 ---
-Respond in character as Darwin. 3–5 sentences only. Do not add preamble or stage directions.`;
+Respond in character as Darwin. 3–5 sentences only. Plain text only — no JSON, no preamble, no stage directions.`;
 
-  const imageList = Object.entries(IMAGE_EMOTIONS)
-    .map(([k,v]) => `${k}: ${v}`).join(', ');
-
-  const fullSys = sys + `
-
----
-After your response, you must also choose which image to display.
-Available images: ${imageList}
-Respond ONLY as a JSON object with two keys:
-  "response": your in-character reply (3-5 sentences as Darwin),
-  "image": the image key that best fits your emotional state right now (e.g. "I_norm2")`;
-
-  const raw = await callOpenAI({
+  const response = await callOpenAI({
     model: 'gpt-4o',
     messages: [...S.history, { role:'user', content: userInput }],
-    system: fullSys,
-    max_tokens: 450,
-    json: true,
+    system: sys,
+    max_tokens: 350,
   });
 
+  return response;
+}
+
+// ─── STEP 2b : PICK IMAGE (separate small call) ──────────────
+async function pickImageFromLLM(responseText, tone) {
+  const imageList = Object.entries(IMAGE_EMOTIONS)
+    .map(([k,v]) => `${k}: ${v}`).join(', ');
+  const sys = `You choose which image to display for Darwin based on the emotional tone of his reply.
+Available images: ${imageList}
+Reply with ONLY the image key (e.g. I_norm2). Nothing else.`;
   try {
-    const parsed = JSON.parse(raw);
-    return { response: parsed.response || raw, image: parsed.image || null };
+    const raw = await callOpenAI({
+      model: 'gpt-4o-mini',
+      messages: [{ role: 'user', content: responseText.slice(0, 200) }],
+      system: sys,
+      max_tokens: 10,
+    });
+    const key = raw.trim().replace(/[^a-zA-Z0-9_]/g, '');
+    return Object.keys(IMAGE_EMOTIONS).includes(key) ? key : pickImage(tone);
   } catch {
-    return { response: raw, image: null };
+    return pickImage(tone);
   }
 }
 
@@ -1114,7 +1231,20 @@ Respond ONLY as a JSON object with two keys:
 function applyTransition(cls) {
   S.tone = cls.suggested_tone || S.tone;
 
-  if (['minimal_evasive','off_topic'].includes(cls.category)) {
+  // Apply mood delta from player's input (clamped 1-7)
+  const delta = typeof cls.mood_delta === 'number' ? cls.mood_delta : 0;
+  const prev  = S.mood;
+  const prevZone = moodZone(prev);
+  S.mood = Math.max(1, Math.min(7, S.mood + delta));
+  const newZone = moodZone(S.mood);
+  // Trigger jingle + stem change on any zone crossing
+  if (prevZone !== newZone) {
+    if (newZone === 'happy') { playJingle('happy'); if (musicOn) setVolumes('happy'); }
+    else if (newZone === 'sad')  { playJingle('sad');   if (musicOn) setVolumes('sad');   }
+    else if (newZone === 'normal') {                    if (musicOn) setVolumes('normal'); }
+  }
+
+  if (['minimal_evasive','off_topic','rude_dismissive'].includes(cls.category)) {
     S.evasions++;
   } else {
     S.evasions = 0;
@@ -1158,15 +1288,12 @@ async function handleTurn(userInput) {
     // 3. RAG retrieval
     const context = ragRetrieve(userInput, S.topic);
 
-    // 4. Generate response + image selection
-    const result   = await generate(userInput, cls, context);
-    const response = result.response;
+    // 4. Generate response (plain text — no JSON, no freeze risk)
+    const response = await generate(userInput, cls, context);
+    if (!response || !response.trim()) throw new Error('Empty response from API');
 
-    // 5. Image: use LLM pick if valid, else fallback to tone pool
-    const validImages = Object.keys(IMAGE_EMOTIONS);
-    const imgName = (result.image && validImages.includes(result.image))
-      ? result.image
-      : pickImage(S.tone);
+    // 5. Pick image in parallel-ish (fast mini call)
+    const imgName = await pickImageFromLLM(response, S.tone);
 
     // 6. Update mood + audio
     applyMoodDelta(imgName);
@@ -1186,22 +1313,34 @@ async function handleTurn(userInput) {
   } catch(err) {
     setTyping(false);
     showError('Error: ' + err.message);
-    addMessage('darwin', `<em style="color:var(--faded)">Mr. Darwin appears momentarily indisposed. Please try again.</em>`);
+    // Show input directly — don't go through typewriter for error state
+    document.getElementById('vn-dialogue-text').textContent = 'Mr. Darwin appears momentarily indisposed. Please try again.';
+    document.getElementById('vn-dialogue-text').style.display = 'block';
+    document.getElementById('thinking-box').style.display = 'none';
+    showInputWrap(true);
+    document.getElementById('chat-input').focus();
   }
 }
 
 // ═══════════════════════════════════════════════════════════════
 // INPUT HANDLERS
 // ═══════════════════════════════════════════════════════════════
+let _processing = false;
+
 async function handleSend() {
+  if (_processing) return;
   const input = document.getElementById('chat-input');
   const text  = input.value.trim();
   if (!text) return;
-
+  _processing = true;
   input.value = '';
   input.style.height = 'auto';
   addMessage('user', text);
-  await handleTurn(text);
+  try {
+    await handleTurn(text);
+  } finally {
+    _processing = false;
+  }
 }
 
 function handleKey(e) {
@@ -1227,9 +1366,11 @@ async function initApp() {
     });
     S.history.push({ role:'user', content:'Good day.' }, { role:'assistant', content: opening });
     setTyping(false);
+    crossfade('I_norm2');
     addMessage('darwin', opening);
   } catch(err) {
     setTyping(false);
+    crossfade('I_norm2');
     addMessage('darwin', `Good day to you. I am Charles Darwin, and I confess I have been most eager for this conversation. There is no subject I find more inexhaustibly fascinating than the question of how the great variety of life upon this earth came to be. Shall we begin by considering what you understand by the phrase "natural selection"?`);
     showError('Could not reach OpenAI: ' + err.message);
   }
