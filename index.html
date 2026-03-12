@@ -187,10 +187,11 @@
     /* ─── SPRITE ──────────────────────────────────────── */
     .vn-sprite-wrap {
       position: absolute;
-      bottom: 210px;
+      bottom: 230px;
       left: 50%; transform: translateX(-50%);
-      width: min(380px, 48vw);
-      aspect-ratio: 3 / 4;
+      width: min(494px, 62vw);
+      height: 0;
+      overflow: visible;
       z-index: 5;
       filter: drop-shadow(0 12px 32px rgba(200,80,120,0.2));
       animation: spriteIn 0.5s ease;
@@ -202,12 +203,21 @@
     }
 
     .portrait-img {
-      position: absolute; inset: 0;
-      width: 100%; height: 100%;
-      object-fit: contain;
+      position: absolute;
+      bottom: 0; left: 0;
+      width: 100%; height: auto;
       transition: opacity 0.45s ease;
     }
     .portrait-img.fade-out { opacity: 0; }
+
+    /* Darken sprite while Darwin is thinking */
+    .vn-sprite-wrap.thinking {
+      filter: drop-shadow(0 12px 32px rgba(200,80,120,0.2)) brightness(0.72);
+      transition: filter 0.4s ease;
+    }
+    .vn-sprite-wrap {
+      transition: filter 0.4s ease;
+    }
 
     /* ─── DIALOGUE BOX ────────────────────────────────── */
     .vn-dialogue {
@@ -1166,10 +1176,12 @@ function setTyping(on) {
     thinking.style.display = 'block';
     showInputWrap(false);
     crossfade('I_norm1');
+    document.querySelector('.vn-sprite-wrap').classList.add('thinking');
   } else {
     // Hide thinking box — addMessage will reveal dt once typewriting begins
     thinking.style.display = 'none';
     dt.style.display = 'none';
+    document.querySelector('.vn-sprite-wrap').classList.remove('thinking');
   }
   document.getElementById('send-btn').disabled   = on;
   document.getElementById('chat-input').disabled = on;
@@ -1352,9 +1364,16 @@ function applyTransition(cls) {
   }
 
   // Apply mood delta from player's input (clamped 1-7)
-  const delta = typeof cls.mood_delta === 'number' ? cls.mood_delta : 0;
+  let delta = typeof cls.mood_delta === 'number' ? cls.mood_delta : 0;
   const prev  = S.mood;
   const prevZone = moodZone(prev);
+  // Happy-zone buffer: once in happy zone, only rude/evasive responses can drag mood down
+  if (prevZone === 'happy' && delta < 0) {
+    const harshCategories = ['rude_dismissive', 'minimal_evasive'];
+    if (!harshCategories.includes(cls.category)) {
+      delta = 0; // ignore mild negatives — Darwin stays pleased
+    }
+  }
   S.mood = Math.max(1, Math.min(7, S.mood + delta));
   const newZone = moodZone(S.mood);
   // Trigger jingle + stem change on any zone crossing
@@ -1465,7 +1484,15 @@ async function handleTurn(userInput) {
     if (!response || !response.trim()) throw new Error('Empty response from API');
 
     // 5. Pick image
-    const imgName = S.learnComplete ? 'I_happ1' : await pickImageFromLLM(response, S.tone);
+    let imgName;
+    if (S.learnComplete) {
+      imgName = 'I_happ1';
+    } else if (['rude_dismissive', 'minimal_evasive'].includes(cls.category)) {
+      // Always show unhappy/mad portrait when player is rude
+      imgName = Math.random() < 0.5 ? 'I_sad1' : 'I_sad2';
+    } else {
+      imgName = await pickImageFromLLM(response, S.tone);
+    }
 
     // 6. Update mood + audio
     applyMoodDelta(imgName);
