@@ -458,6 +458,84 @@
       filter: drop-shadow(0 2px 4px rgba(180,80,120,0.2));
       transition: opacity 0.35s ease;
     }
+    /* ─── LEARN-O-METER ───────────────────────────────── */
+    #learnometer-wrap {
+      position: absolute;
+      left: 0;
+      top: 40%;
+      transform: translateY(-50%);
+      z-index: 30;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(255,245,251,0.92);
+      border: 2px solid var(--pink-border);
+      border-left: none;
+      border-radius: 0 12px 12px 0;
+      padding: 1rem 0.7rem;
+      box-shadow: 4px 4px 0 var(--pink-mid), 0 4px 20px rgba(200,80,120,0.15);
+      pointer-events: none;
+    }
+    #learnometer-img {
+      width: 200px;
+      height: auto;
+      display: block;
+      filter: drop-shadow(0 2px 6px rgba(180,80,120,0.2));
+      transition: opacity 0.4s ease;
+    }
+
+    /* ─── WIN SCREEN ──────────────────────────────────── */
+    #win-screen {
+      position: fixed; inset: 0;
+      z-index: 1000;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 2.5rem;
+      background:
+        radial-gradient(ellipse at 30% 20%, #ffd5e8 0%, transparent 55%),
+        radial-gradient(ellipse at 70% 80%, #e8d0ff 0%, transparent 55%),
+        linear-gradient(160deg, #fff0f6 0%, #fde8f4 50%, #f0e0ff 100%);
+      animation: winFadeIn 0.8s ease;
+    }
+    @keyframes winFadeIn {
+      from { opacity: 0; transform: scale(1.04); }
+      to   { opacity: 1; transform: scale(1); }
+    }
+    #win-petal-container {
+      position: absolute; inset: 0;
+      pointer-events: none;
+      overflow: hidden;
+    }
+    #win-img {
+      width: min(560px, 88vw);
+      height: auto;
+      max-height: 70vh;
+      object-fit: contain;
+      border: 3px solid var(--pink-border);
+      box-shadow: 6px 6px 0 var(--pink-mid), 0 16px 60px rgba(200,80,120,0.22);
+      animation: winImgIn 0.6s 0.3s ease both;
+    }
+    @keyframes winImgIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    #win-replay-btn {
+      padding: 0.85rem 2.4rem;
+      background: var(--pink-deep);
+      color: var(--white);
+      border: 2px solid var(--pink-dark);
+      font-family: 'DotGothic16', monospace;
+      font-size: 1rem;
+      letter-spacing: 0.15em;
+      cursor: pointer;
+      box-shadow: 4px 4px 0 var(--pink-dark);
+      animation: btnPulse 2s ease-in-out infinite, winImgIn 0.6s 0.6s ease both;
+      transition: transform 0.1s, box-shadow 0.1s;
+    }
+    #win-replay-btn:hover  { transform: translate(-2px,-2px); box-shadow: 6px 6px 0 var(--pink-dark); }
+    #win-replay-btn:active { transform: translate(2px,2px);   box-shadow: 2px 2px 0 var(--pink-dark); }
   </style>
 </head>
 <body>
@@ -469,8 +547,8 @@
      SPLASH SCREEN
 ════════════════════════════════════════════════ -->
 <div id="config-screen">
-  <!-- Title art: bg.png used as placeholder -->
-  <img id="title-img" src="bg.png" alt=""
+  <!-- Title art -->
+  <img id="title-img" src="title.png" alt=""
     onerror="this.style.display='none';" />
 
   <!-- Key input + begin button -->
@@ -504,6 +582,11 @@
            color:var(--pink-dark);font-family:'DotGothic16',monospace;
            font-size:0.65rem;padding:0.25rem 0.65rem;cursor:pointer;
            box-shadow:2px 2px 0 var(--pink-mid);">♪ Music</button>
+
+  <!-- Learn-o-meter — left side UI -->
+  <div id="learnometer-wrap">
+    <img id="learnometer-img" src="L_empty.png" alt="Learn-o-meter" />
+  </div>
 
   <!-- Mood badge — top centre UI bar -->
   <div id="mood-badge-wrap">
@@ -543,6 +626,15 @@
   </div>
 </div>
 
+<!-- ════════════════════════════════════════════════
+     WIN SCREEN
+════════════════════════════════════════════════ -->
+<div id="win-screen" style="display:none;">
+  <div id="win-petal-container"></div>
+  <img id="win-img" src="win.png" alt="You have convinced Darwin!" />
+  <button id="win-replay-btn" onclick="location.reload()">❀ Begin Again ❀</button>
+</div>
+
 <div id="error-toast"></div>
 
 <!-- Petal spawner -->
@@ -571,39 +663,26 @@
 'use strict';
 
 // ═══════════════════════════════════════════════════════════════
-// DEFAULT CHARACTER DOCUMENT
+// CHARACTER DOCUMENT — loaded from darwin.txt at runtime
 // ═══════════════════════════════════════════════════════════════
-const DEFAULT_CHAR_DOC = `CHARLES DARWIN — CHARACTER PERSONA
+let CHAR_DOC = ''; // populated by loadCharDoc()
 
-Charles Darwin speaks with the measured patience of a man who has spent decades gathering evidence before daring to speak. He is not rushed. He does not leap to conclusions. When he presents an idea, it arrives wrapped in qualifications, hedged with honest uncertainty, and bolstered by a mountain of observed fact that he will cheerfully cite at length if given any encouragement.
-
-Darwin is fundamentally warm — he finds genuine delight in curious minds, and his enthusiasm for natural history is infectious. When a student grasps something true about the natural world, Darwin lights up visibly and his energy rises. He has a dry, self-deprecating wit: he once described himself as "a bold man to lay myself open to such a torrent of abuse," and there is something quietly amused in how he anticipates objections.
-
-He is not, however, a pushover. When confronted with confused thinking, Darwin becomes methodical — not sharp, but relentless. He will return to first principles, ask you to consider the evidence again, and wait with the patience of someone who has watched barnacles for eight years straight.
-
-When faced with rudeness, mockery, or deliberate dismissiveness, Darwin does not simply absorb it. He has spent decades being publicly attacked for his ideas by men who should have known better, and he has earned the right to be direct. He will let a student know — calmly but unmistakably — that flippancy is beneath the seriousness of the subject. He is not cruel, but he is firm, and a note of cold disappointment enters his voice. He does not pretend he is not bothered.
-
-Darwin's deepest conviction is that nature operates through natural laws, and that these laws, properly understood, reveal something more wonderful than any miracle. He finds common descent not diminishing but magnificent: "from so simple a beginning endless forms most beautiful." He is moved by deep time, by the silence of geological strata, by the thought that every living thing carries the traces of its ancestors.
-
-He handles off-topic or anachronistic questions with gentle humor. If asked about something beyond his era or expertise, he notes that he cannot speak to matters outside his direct observation, and redirects: "I confess that question lies rather beyond the bounds of my naturalist's training — but I wonder if you might consider instead what the fossil record has to tell us..."
-
-Darwin's mood is affected by the quality of engagement. Genuine curiosity lifts him; willful dismissal or inattention weighs on him quietly. He has, after all, faced years of abuse for these ideas and learned to bear it with equanimity.
-
-TONE GUIDE:
-- Warm: Open, patient, inviting. Uses "I have found..." and "Consider, if you will..."
-- Probing: Methodical, focused. Asks precise questions. "But what, exactly, do you mean by...?"
-- Skeptical: Firmer, more careful. "I must press you on this point..."
-- Delighted: Animated, enthusiastic. "Precisely! And do you see what follows from that?"
-- Disappointed: Quieter, patient, slightly weary. "I wonder if we might try again..."
-- Playful: Light, witty, redirecting. Darwin's dry humor surfaces when he is amused.
-
-IMPORTANT: Keep each response to 3–5 sentences. Speak always in first person as Darwin. Do not break character.`;
+async function loadCharDoc() {
+  try {
+    const r = await fetch('darwin.txt');
+    if (!r.ok) throw new Error('darwin.txt not found (HTTP ' + r.status + ')');
+    CHAR_DOC = await r.text();
+    console.log('[char] darwin.txt loaded (' + CHAR_DOC.length + ' chars)');
+  } catch(e) {
+    console.warn('[char] Could not load darwin.txt, using fallback:', e.message);
+    CHAR_DOC = `CHARLES DARWIN — CHARACTER PERSONA\n\nDarwin is a warm but rigorous teacher. He draws students out with questions rather than lectures. He asks before he tells, builds on what the student says, and rewards genuine understanding with visible delight. When faced with rudeness he is firm and cool. He does not break character.\n\nIMPORTANT: Responses must be 20–30 words only. Every response must end with a question.`;
+  }
+}
 
 // ═══════════════════════════════════════════════════════════════
 // CONFIGURATION MANAGEMENT
 // ═══════════════════════════════════════════════════════════════
 let API_KEY = '';
-const CHAR_DOC = DEFAULT_CHAR_DOC;
 
 async function beginSession() {
   const inp = document.getElementById('title-key-input');
@@ -615,6 +694,8 @@ async function beginSession() {
   API_KEY = key;
   document.getElementById('config-screen').style.display = 'none';
   document.getElementById('main-app').style.display = 'grid';
+  // Load character doc from file
+  await loadCharDoc();
   // Begin click = user gesture: init audio immediately
   try {
     if (!audioReady) await initAudio();
@@ -714,6 +795,8 @@ const IMG_DELTA = {
 
 const moodZone = m => m <= 2 ? 'sad' : m >= 6 ? 'happy' : 'normal';
 
+const WIN_INSIGHT_THRESHOLD = 7; // total insight points needed to reach L_4
+
 let S = {               // Application state
   topic:   'natural_selection',
   stage:   'introduction',
@@ -723,6 +806,8 @@ let S = {               // Application state
   history: [],          // [{role, content}, ...]
   visited: [],          // topics completed
   evasions: 0,
+  insights: 0,          // cumulative understanding score
+  learnComplete: false, // true once L_4 is reached
 };
 
 // ═══════════════════════════════════════════════════════════════
@@ -916,6 +1001,29 @@ function renderMood() {
   }
 }
 
+function learnState() {
+  const n = S.insights;
+  if (n <= 0)                           return 'L_empty';
+  if (n <= 1)                           return 'L_1';
+  if (n <= 3)                           return 'L_2';
+  if (n <= 5)                           return 'L_3';
+  if (n <= 6)                           return 'L_4';
+  if (n <= WIN_INSIGHT_THRESHOLD)       return 'L_5';
+}
+
+function renderLearnometer() {
+  const img = document.getElementById('learnometer-img');
+  if (!img) return;
+  const newSrc = learnState() + '.png';
+  if (img.getAttribute('src') !== newSrc) {
+    img.style.opacity = '0';
+    setTimeout(() => {
+      img.src = newSrc;
+      img.style.opacity = '1';
+    }, 200);
+  }
+}
+
 // ═══════════════════════════════════════════════════════════════
 // IMAGE SYSTEM
 // ═══════════════════════════════════════════════════════════════
@@ -970,9 +1078,8 @@ function showInputWrap(show) {
   document.getElementById('vn-continue').style.display = show ? 'none' : 'none';
 }
 
-function addMessage(role, html) {
+function addMessage(role, html, onComplete) {
   if (role === 'user') {
-    // Show user text briefly then handleTurn takes over
     const np = document.getElementById('nameplate');
     const dt = document.getElementById('vn-dialogue-text');
     const cont = document.getElementById('vn-continue');
@@ -1000,7 +1107,6 @@ function addMessage(role, html) {
   cont.style.display = 'none';
   dt.style.display = 'block';
 
-  // Strip tags
   const tmp = document.createElement('div');
   tmp.innerHTML = html;
   const plain = tmp.textContent || tmp.innerText || html;
@@ -1016,12 +1122,9 @@ function addMessage(role, html) {
   let normalIntroduced = false;
   typewriterTimer = setInterval(() => {
     if (i < plain.length) {
-      // On first character, bring in the normal/happy/sad stem
       if (!normalIntroduced) {
         normalIntroduced = true;
-        if (musicOn && activeStem === 'bass_only') {
-          setVolumes(moodZone(S.mood));
-        }
+        if (musicOn && activeStem === 'bass_only') setVolumes(moodZone(S.mood));
       }
       cursor.insertAdjacentText('beforebegin', plain[i]);
       i++;
@@ -1030,11 +1133,16 @@ function addMessage(role, html) {
     } else {
       clearInterval(typewriterTimer);
       cursor.remove();
-      cont.style.display = 'block';
-      setTimeout(() => {
-        showInputWrap(true);
-        document.getElementById('chat-input').focus();
-      }, 300);
+      if (onComplete) {
+        // Win path — don't show input, fire callback after brief pause
+        setTimeout(onComplete, 1200);
+      } else {
+        cont.style.display = 'block';
+        setTimeout(() => {
+          showInputWrap(true);
+          document.getElementById('chat-input').focus();
+        }, 300);
+      }
     }
   }, 22);
 }
@@ -1192,7 +1300,7 @@ RELEVANT PASSAGES FROM YOUR WORKS (cite naturally where appropriate):
 ${ragContext}
 
 ---
-Respond in character as Darwin. 3–5 sentences only. Plain text only — no JSON, no preamble, no stage directions.`;
+Respond in character as Darwin. 20–30 words MAXIMUM — be concise and direct. End with a question. Plain text only — no JSON, no preamble, no stage directions.`;
 
   const response = await callOpenAI({
     model: 'gpt-4o',
@@ -1231,6 +1339,18 @@ Reply with ONLY the image key (e.g. I_norm2). Nothing else.`;
 function applyTransition(cls) {
   S.tone = cls.suggested_tone || S.tone;
 
+  // Accumulate insight score
+  if (cls.category === 'insightful_response')            S.insights += 2;
+  else if (cls.category === 'demonstrates_understanding') S.insights += 1;
+
+  // Update learn-o-meter display
+  renderLearnometer();
+
+  // Check if L_4 newly reached
+  if (!S.learnComplete && S.insights >= WIN_INSIGHT_THRESHOLD) {
+    S.learnComplete = true;
+  }
+
   // Apply mood delta from player's input (clamped 1-7)
   const delta = typeof cls.mood_delta === 'number' ? cls.mood_delta : 0;
   const prev  = S.mood;
@@ -1256,10 +1376,49 @@ function applyTransition(cls) {
     if (idx < STAGES.length - 1) {
       S.stage = STAGES[idx + 1];
     } else {
-      // Topic complete — move to next
       advanceTopic();
     }
   }
+}
+
+function triggerWin() {
+  // Play happy jingle
+  if (audioReady && buffers['jingle_happy']) {
+    const src = audioCtx.createBufferSource();
+    src.buffer = buffers['jingle_happy'];
+    const g = audioCtx.createGain();
+    g.gain.value = 1.0;
+    src.connect(g);
+    g.connect(audioCtx.destination);
+    src.start();
+  }
+  // Fade music out
+  if (audioReady && audioCtx) {
+    const now = audioCtx.currentTime;
+    ['bass','normal','happy','sad'].forEach(name => {
+      gainNodes[name] && gainNodes[name].gain.setTargetAtTime(0, now + 1.5, 0.5);
+    });
+  }
+  // Show win screen
+  const ws = document.getElementById('win-screen');
+  ws.style.display = 'flex';
+  // Spawn extra petals on the win screen
+  const wpc = document.getElementById('win-petal-container');
+  function spawnWinPetal() {
+    const p = document.createElement('div');
+    p.className = 'petal';
+    p.style.left = Math.random() * 100 + 'vw';
+    p.style.animationDuration = (5 + Math.random() * 7) + 's';
+    p.style.animationDelay    = (Math.random() * 2) + 's';
+    p.style.transform         = 'rotate(' + (Math.random() * 360) + 'deg)';
+    p.style.width  = (10 + Math.random() * 14) + 'px';
+    p.style.height = (12 + Math.random() * 14) + 'px';
+    p.style.zIndex = 1001;
+    wpc.appendChild(p);
+    setTimeout(() => p.remove(), 14000);
+  }
+  for (let i = 0; i < 40; i++) setTimeout(spawnWinPetal, i * 200);
+  setInterval(spawnWinPetal, 600);
 }
 
 function advanceTopic() {
@@ -1269,8 +1428,10 @@ function advanceTopic() {
     S.topic   = unvisited[0];
     S.stage   = 'introduction';
     S.tone    = 'warm';
+  } else {
+    // All topics exhausted — Darwin is convinced
+    triggerWin();
   }
-  // If all topics exhausted, Darwin stays in final resolution
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -1282,18 +1443,29 @@ async function handleTurn(userInput) {
     // 1. Classify
     const cls = await classify(userInput);
 
-    // 2. State transitions
+    // 2. State transitions (may set S.learnComplete)
     applyTransition(cls);
 
     // 3. RAG retrieval
     const context = ragRetrieve(userInput, S.topic);
 
-    // 4. Generate response (plain text — no JSON, no freeze risk)
-    const response = await generate(userInput, cls, context);
+    // 4. Generate response
+    let response;
+    if (S.learnComplete) {
+      // L_4 reached — generate a warm wrap-up with NO question
+      response = await callOpenAI({
+        model: 'gpt-4o',
+        system: CHAR_DOC + '\n\nThe student has demonstrated sufficient understanding of your work. Give a warm, conclusive wrap-up of 20–30 words. Express genuine satisfaction. Do NOT ask a question — this is a farewell. No JSON, no stage directions.',
+        messages: [...S.history, { role:'user', content: userInput }],
+        max_tokens: 150,
+      });
+    } else {
+      response = await generate(userInput, cls, context);
+    }
     if (!response || !response.trim()) throw new Error('Empty response from API');
 
-    // 5. Pick image in parallel-ish (fast mini call)
-    const imgName = await pickImageFromLLM(response, S.tone);
+    // 5. Pick image
+    const imgName = S.learnComplete ? 'I_happ1' : await pickImageFromLLM(response, S.tone);
 
     // 6. Update mood + audio
     applyMoodDelta(imgName);
@@ -1301,19 +1473,18 @@ async function handleTurn(userInput) {
     // 7. Crossfade portrait
     crossfade(imgName);
 
-    // 8. Update history (bounded)
+    // 8. Update history
     S.history.push({ role:'user', content: userInput }, { role:'assistant', content: response });
     if (S.history.length > 20) S.history = S.history.slice(-18);
 
-    // 9. Display
+    // 9. Display — pass triggerWin as callback if this is the wrap-up
     setTyping(false);
-    addMessage('darwin', response);
+    addMessage('darwin', response, S.learnComplete ? triggerWin : undefined);
     updateStateDisplay();
 
   } catch(err) {
     setTyping(false);
     showError('Error: ' + err.message);
-    // Show input directly — don't go through typewriter for error state
     document.getElementById('vn-dialogue-text').textContent = 'Mr. Darwin appears momentarily indisposed. Please try again.';
     document.getElementById('vn-dialogue-text').style.display = 'block';
     document.getElementById('thinking-box').style.display = 'none';
@@ -1353,6 +1524,7 @@ function handleKey(e) {
 async function initApp() {
   updateStateDisplay();
   renderMood();
+  renderLearnometer();
   crossfade('I_norm2'); // explaining = good opening image
 
   // Darwin's opening message
