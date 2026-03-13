@@ -204,8 +204,9 @@
 
     .portrait-img {
       position: absolute;
-      bottom: 0; left: 0;
-      width: 100%; height: auto;
+      bottom: 0;
+      left: 50%; transform: translateX(-50%);
+      height: min(400px, 48vh); width: auto; max-width: 100%;
       transition: opacity 0.45s ease;
     }
     .portrait-img.fade-out { opacity: 0; }
@@ -1018,7 +1019,7 @@ function learnState() {
   if (n <= 3)                           return 'L_2';
   if (n <= 5)                           return 'L_3';
   if (n <= 6)                           return 'L_4';
-  if (n <= WIN_INSIGHT_THRESHOLD)       return 'L_5';
+  return 'L_5'; // n > all lower thresholds, or at/beyond win threshold
 }
 
 function renderLearnometer() {
